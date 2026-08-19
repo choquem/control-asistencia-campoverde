@@ -38,10 +38,14 @@
             font-weight: 600;
             cursor: pointer;
             margin-top: 20px;
+            margin-right: 10px;
         }
         .btn:hover { background: #00a383; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,184,148,0.3); }
+        .btn:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
         .btn-danger { background: #e74c3c; }
         .btn-danger:hover { background: #c0392b; }
+        .btn-success { background: #00b894; }
+        .btn-success:hover { background: #00a383; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: #667eea; color: white; padding: 15px; text-align: left; }
@@ -153,14 +157,8 @@
             font-size: 0.95rem;
         }
         .summary-table tr:hover { background: #f8f9fa; }
-        .summary-table .day-header {
-            font-size: 0.85rem;
-        }
-        .summary-table .date-sub {
-            font-size: 0.75rem;
-            opacity: 0.8;
-            font-weight: normal;
-        }
+        .summary-table .day-header { font-size: 0.85rem; }
+        .summary-table .date-sub { font-size: 0.75rem; opacity: 0.8; font-weight: normal; }
         
         .stats-row {
             display: grid;
@@ -199,6 +197,7 @@
         .success { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin: 10px 0; }
         .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin: 10px 0; }
         .loading { color: #667eea; font-size: 1.1rem; padding: 20px; text-align: center; }
+        .warning { background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin: 10px 0; }
         
         .date-display {
             background: #f8f9fa;
@@ -213,6 +212,17 @@
         }
         .current-date { font-size: 1.2rem; font-weight: 600; color: #667eea; }
         .student-count { background: #667eea; color: white; padding: 8px 15px; border-radius: 20px; font-size: 0.9rem; }
+        
+        .sync-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .sync-status.connected { background: #d4edda; color: #155724; }
+        .sync-status.syncing { background: #fff3cd; color: #856404; }
         
         @media (max-width: 768px) {
             h1 { font-size: 1.8rem; }
@@ -232,7 +242,7 @@
         <h1>📋 Control de Asistencia</h1>
         
         <div class="card">
-            <h2>👥 Lista de Alumnos</h2>
+            <h2> Lista de Alumnos</h2>
             <div id="studentInfo" class="loading">Cargando alumnos...</div>
         </div>
 
@@ -247,11 +257,13 @@
                 <div class="student-count" id="studentCount"></div>
             </div>
             <div id="attendanceTable"></div>
-            <button class="btn" onclick="saveAttendance()">💾 Guardar Asistencia</button>
+            <button class="btn btn-success" id="btnSave" onclick="saveAttendanceToSheet()">💾 Guardar en Google Sheets</button>
+            <span id="syncStatus" class="sync-status connected" style="display: none;"></span>
+            <div id="saveMessage" style="margin-top: 10px;"></div>
         </div>
 
         <div class="card">
-            <h2> Resumen Semanal</h2>
+            <h2>📊 Resumen Semanal</h2>
             <div class="week-selector" id="weekSelector"></div>
             <div class="week-range" id="weekRange"></div>
             <div id="weeklySummaryTable"></div>
@@ -267,19 +279,20 @@
         </div>
 
         <div class="card">
-            <h2>📝 Historial de Asistencia</h2>
+            <h2> Historial de Asistencia</h2>
             <div id="historyTable"></div>
-            <button class="btn btn-danger" onclick="clearAllData()" style="margin-top: 20px;">
-                🗑️ Borrar Todo el Historial
-            </button>
         </div>
     </div>
 
     <script>
+        // ️ REEMPLAZA ESTO CON TU URL DE GOOGLE APPS SCRIPT
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxR9uylG4L8zsahu7SYz8WNF1gUk5ksKtEEi4U3I5PHtksuwFnbJQTu2qhKZ0ljFWn6fQ/exec';
+        
         let students = [];
-        let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+        let attendanceData = [];
         let selectedWeek = 0;
         let tempAttendance = {};
+        let isLoading = false;
 
         document.getElementById('fecha').valueAsDate = new Date();
         updateCurrentDate();
@@ -296,6 +309,7 @@
             document.getElementById('currentDate').textContent = date.toLocaleDateString('es', options);
         }
 
+        // Cargar alumnos desde CSV
         fetch('https://raw.githubusercontent.com/choquem/mi-primera-pagina/main/students.csv')
             .then(response => {
                 if (!response.ok) throw new Error('Error al cargar CSV');
@@ -318,16 +332,56 @@
                 `;
                 document.getElementById('attendanceCard').style.display = 'block';
                 document.getElementById('studentCount').textContent = `${students.length} alumnos`;
-                renderAttendanceTable();
-                renderWeekSelector();
-                renderWeeklySummary();
-                renderHistory();
+                
+                // Cargar datos desde Google Sheets
+                loadAttendanceFromSheet();
             })
             .catch(error => {
                 document.getElementById('studentInfo').innerHTML = `
                     <div class="error">❌ Error al cargar: ${error.message}</div>
                 `;
             });
+
+        // ✅ CARGAR DATOS DESDE GOOGLE SHEETS
+        function loadAttendanceFromSheet() {
+            if (GOOGLE_SCRIPT_URL === 'AQUI_PEGA_TU_URL_DEL_APPS_SCRIPT') {
+                document.getElementById('studentInfo').innerHTML += `
+                    <div class="warning">
+                        ⚠️ <strong>Configuración pendiente:</strong><br>
+                        1. Sigue los pasos para crear el Google Apps Script<br>
+                        2. Reemplaza GOOGLE_SCRIPT_URL en el código HTML con tu URL<br>
+                        3. Recarga la página
+                    </div>
+                `;
+                renderAttendanceTable();
+                renderWeekSelector();
+                renderWeeklySummary();
+                return;
+            }
+
+            showSyncStatus('Cargando datos...', 'syncing');
+            
+            fetch(GOOGLE_SCRIPT_URL)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.result === 'success') {
+                        attendanceData = result.data || [];
+                        console.log('Datos cargados:', attendanceData);
+                        showSyncStatus('Conectado a Google Sheets', 'connected');
+                        renderAttendanceTable();
+                        renderWeekSelector();
+                        renderWeeklySummary();
+                        renderHistory();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showSyncStatus('Error de conexión', 'error');
+                    document.getElementById('saveMessage').innerHTML = `
+                        <div class="error">Error al cargar datos: ${error.message}</div>
+                    `;
+                });
+        }
 
         function renderAttendanceTable() {
             const fecha = document.getElementById('fecha').value;
@@ -383,22 +437,87 @@
             event.target.closest('.status-btn').classList.add('active');
         }
 
-        function saveAttendance() {
+        // ✅ GUARDAR EN GOOGLE SHEETS
+        function saveAttendanceToSheet() {
+            if (GOOGLE_SCRIPT_URL === 'AQUI_PEGA_TU_URL_DEL_APPS_SCRIPT') {
+                alert('⚠️ Primero debes configurar la URL de Google Apps Script en el código HTML');
+                return;
+            }
+
             const fecha = document.getElementById('fecha').value;
+            const validEntries = Object.keys(tempAttendance).filter(k => k !== '_loadedFor');
+            
+            if (validEntries.length === 0) {
+                alert('Por favor, marca al menos un alumno');
+                return;
+            }
+
+            const btnSave = document.getElementById('btnSave');
+            btnSave.disabled = true;
+            btnSave.textContent = '⏳ Guardando...';
+            showSyncStatus('Guardando...', 'syncing');
+
+            // Eliminar registros anteriores de esta fecha
             attendanceData = attendanceData.filter(r => r.fecha !== fecha);
-            Object.keys(tempAttendance).forEach(student => {
-                if (student !== '_loadedFor') {
-                    attendanceData.push({
-                        nombre: student,
-                        fecha: fecha,
-                        estado: tempAttendance[student]
-                    });
-                }
+            
+            // Agregar nuevos registros
+            const newRecords = [];
+            validEntries.forEach(student => {
+                const record = {
+                    nombre: student,
+                    fecha: fecha,
+                    estado: tempAttendance[student]
+                };
+                attendanceData.push(record);
+                newRecords.push(record);
             });
-            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
-            alert('✅ Asistencia guardada correctamente');
-            renderWeeklySummary();
-            renderHistory();
+
+            // Enviar a Google Sheets (uno por uno)
+            let savedCount = 0;
+            const promises = newRecords.map(record => {
+                return fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(record)
+                }).then(() => {
+                    savedCount++;
+                });
+            });
+
+            Promise.all(promises)
+                .then(() => {
+                    localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+                    showSyncStatus('Guardado correctamente', 'connected');
+                    document.getElementById('saveMessage').innerHTML = `
+                        <div class="success">✅ ${savedCount} registros guardados en Google Sheets</div>
+                    `;
+                    setTimeout(() => {
+                        document.getElementById('saveMessage').innerHTML = '';
+                    }, 3000);
+                    renderWeeklySummary();
+                    renderHistory();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showSyncStatus('Error al guardar', 'error');
+                    document.getElementById('saveMessage').innerHTML = `
+                        <div class="error">❌ Error al guardar: ${error.message}</div>
+                    `;
+                })
+                .finally(() => {
+                    btnSave.disabled = false;
+                    btnSave.textContent = '💾 Guardar en Google Sheets';
+                });
+        }
+
+        function showSyncStatus(message, type) {
+            const statusEl = document.getElementById('syncStatus');
+            statusEl.textContent = message;
+            statusEl.className = 'sync-status ' + type;
+            statusEl.style.display = 'inline-block';
         }
 
         function getWeekDays(weekOffset = 0) {
@@ -429,7 +548,7 @@
             for (let i = 0; i >= -3; i--) {
                 const btn = document.createElement('button');
                 btn.className = 'week-btn' + (i === selectedWeek ? ' active' : '');
-                btn.textContent = i === 0 ? '📅 Esta Semana' : i === -1 ? ' Semana Pasada' : `Semana ${i}`;
+                btn.textContent = i === 0 ? '📅 Esta Semana' : i === -1 ? '️ Semana Pasada' : `Semana ${i}`;
                 btn.onclick = () => {
                     selectedWeek = i;
                     document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
@@ -446,7 +565,7 @@
             const lastDay = days[days.length - 1];
             
             document.getElementById('weekRange').textContent = 
-                `📆 ${firstDay.fullDate} - ${lastDay.fullDate} (${firstDay.name} a ${lastDay.name})`;
+                ` ${firstDay.fullDate} - ${lastDay.fullDate} (${firstDay.name} a ${lastDay.name})`;
 
             let html = `<table class="summary-table">
                 <thead>
@@ -473,13 +592,9 @@
                     
                     let cellContent = '<span style="color: #ccc;">—</span>';
                     if (record) {
-                        if (record.estado === 'presente') {
-                            cellContent = '✅';
-                        } else if (record.estado === 'ausente') {
-                            cellContent = '❌';
-                        } else if (record.estado === 'tardanza') {
-                            cellContent = '⏰';
-                        }
+                        if (record.estado === 'presente') cellContent = '✅';
+                        else if (record.estado === 'ausente') cellContent = '❌';
+                        else if (record.estado === 'tardanza') cellContent = '⏰';
                     }
                     
                     html += `<td>${cellContent}</td>`;
@@ -545,15 +660,6 @@
             });
             html += '</tbody></table>';
             historyTable.innerHTML = html;
-        }
-
-        function clearAllData() {
-            if (confirm('¿Estás seguro de borrar TODO el historial?')) {
-                attendanceData = [];
-                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
-                renderWeeklySummary();
-                renderHistory();
-            }
         }
     </script>
 </body>
