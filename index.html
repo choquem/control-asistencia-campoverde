@@ -11,78 +11,103 @@
             box-sizing: border-box;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px;
         }
         .hero {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 120px 20px;
-            text-align: center;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            margin-bottom: 100px;
         }
         h1 {
             font-size: 3.5rem;
             margin-bottom: 20px;
-            color: #111;
+            line-height: 1.2;
         }
-        .subtitle {
-            font-size: 1.3rem;
-            color: #666;
-            margin-bottom: 40px;
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
         }
-        .cta-button {
+        .btn {
             display: inline-block;
-            padding: 15px 40px;
-            background: #0066ff;
-            color: white;
+            padding: 15px 35px;
+            background: white;
+            color: #764ba2;
             text-decoration: none;
-            border-radius: 30px;
-            font-weight: 600;
-            transition: transform 0.2s;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-right: 15px;
+            transition: all 0.3s;
         }
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,102,255,0.2);
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
-        .features {
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+        .cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-            max-width: 1000px;
-            margin: 100px auto;
-            padding: 0 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
         }
-        .feature {
-            text-align: center;
-            padding: 30px;
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
         }
-        .feature h3 {
-            margin: 15px 0;
+        .card h3 {
+            margin-bottom: 15px;
             font-size: 1.5rem;
+        }
+        @media (max-width: 768px) {
+            .hero, .cards {
+                grid-template-columns: 1fr;
+            }
+            h1 { font-size: 2.5rem; }
         }
     </style>
 </head>
 <body>
-    <section class="hero">
-        <h1>Hola, soy [Tu Nombre]</h1>
-        <p class="subtitle">Desarrollador web creando experiencias digitales increíbles</p>
-        <a href="#contacto" class="cta-button">Contáctame</a>
-    </section>
-    
-    <section class="features">
-        <div class="feature">
-            <h3>🎨 Diseño</h3>
-            <p>Interfaces modernas y atractivas que captan la atención</p>
+    <div class="container">
+        <div class="hero">
+            <div>
+                <h1>Creamos el futuro digital</h1>
+                <p class="tagline">Transformamos ideas en experiencias digitales extraordinarias</p>
+                <a href="#" class="btn">Empezar</a>
+                <a href="#" class="btn btn-outline">Saber más</a>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); height: 400px; border-radius: 20px;"></div>
         </div>
-        <div class="feature">
-            <h3>💻 Desarrollo</h3>
-            <p>Código limpio y optimizado para mejor rendimiento</p>
+        
+        <div class="cards">
+            <div class="card">
+                <h3> Rápido</h3>
+                <p>Optimización máxima para el mejor rendimiento</p>
+            </div>
+            <div class="card">
+                <h3>🎯 Efectivo</h3>
+                <p>Soluciones que generan resultados reales</p>
+            </div>
+            <div class="card">
+                <h3>💡 Innovador</h3>
+                <p>Tecnología de punta para tu proyecto</p>
+            </div>
         </div>
-        <div class="feature">
-            <h3>🚀 Resultados</h3>
-            <p>Proyectos que cumplen objetivos y superan expectativas</p>
-        </div>
-    </section>
+    </div>
 </body>
 </html>
