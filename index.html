@@ -48,7 +48,6 @@
         td { padding: 15px; border-bottom: 1px solid #e0e0e0; }
         tr:hover { background: #f8f9fa; }
         
-        /* BOTONES DE ESTADO */
         .status-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
         .status-btn {
             padding: 15px 25px;
@@ -100,7 +99,6 @@
             font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
-        /* RESUMEN SEMANAL - TABLA MATRIZ */
         .week-selector { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .week-btn {
             padding: 10px 20px;
@@ -124,7 +122,6 @@
             font-weight: 600;
         }
         
-        /* Tabla de resumen semanal */
         .summary-table {
             width: 100%;
             border-collapse: collapse;
@@ -165,7 +162,6 @@
             font-weight: normal;
         }
         
-        /* Stats resumen */
         .stats-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -233,7 +229,7 @@
 </head>
 <body>
     <div class="container">
-        <h1> Control de Asistencia</h1>
+        <h1>📋 Control de Asistencia</h1>
         
         <div class="card">
             <h2>👥 Lista de Alumnos</h2>
@@ -300,7 +296,6 @@
             document.getElementById('currentDate').textContent = date.toLocaleDateString('es', options);
         }
 
-        // CARGAR CSV
         fetch('https://raw.githubusercontent.com/choquem/mi-primera-pagina/main/students.csv')
             .then(response => {
                 if (!response.ok) throw new Error('Error al cargar CSV');
@@ -330,17 +325,20 @@
             })
             .catch(error => {
                 document.getElementById('studentInfo').innerHTML = `
-                    <div class="error"> Error al cargar: ${error.message}</div>
+                    <div class="error">❌ Error al cargar: ${error.message}</div>
                 `;
             });
 
         function renderAttendanceTable() {
             const fecha = document.getElementById('fecha').value;
-            tempAttendance = {};
-            const existingRecords = attendanceData.filter(r => r.fecha === fecha);
-            existingRecords.forEach(record => {
-                tempAttendance[record.nombre] = record.estado;
-            });
+
+            if (Object.keys(tempAttendance).length === 0 || !tempAttendance._loadedFor || tempAttendance._loadedFor !== fecha) {
+                tempAttendance = { _loadedFor: fecha };
+                const existingRecords = attendanceData.filter(r => r.fecha === fecha);
+                existingRecords.forEach(record => {
+                    tempAttendance[record.nombre] = record.estado;
+                });
+            }
 
             let html = `<table>
                 <thead><tr><th style="width: 30%;">Alumno</th><th>Estado</th></tr></thead>
@@ -378,18 +376,24 @@
 
         function setStatus(student, status) {
             tempAttendance[student] = status;
-            renderAttendanceTable();
+            
+            const row = event.target.closest('tr');
+            const buttons = row.querySelectorAll('.status-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.status-btn').classList.add('active');
         }
 
         function saveAttendance() {
             const fecha = document.getElementById('fecha').value;
             attendanceData = attendanceData.filter(r => r.fecha !== fecha);
             Object.keys(tempAttendance).forEach(student => {
-                attendanceData.push({
-                    nombre: student,
-                    fecha: fecha,
-                    estado: tempAttendance[student]
-                });
+                if (student !== '_loadedFor') {
+                    attendanceData.push({
+                        nombre: student,
+                        fecha: fecha,
+                        estado: tempAttendance[student]
+                    });
+                }
             });
             localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
             alert('✅ Asistencia guardada correctamente');
@@ -397,7 +401,6 @@
             renderHistory();
         }
 
-        // RESUMEN SEMANAL - TABLA MATRIZ
         function getWeekDays(weekOffset = 0) {
             const now = new Date();
             const currentDay = now.getDay();
@@ -426,7 +429,7 @@
             for (let i = 0; i >= -3; i--) {
                 const btn = document.createElement('button');
                 btn.className = 'week-btn' + (i === selectedWeek ? ' active' : '');
-                btn.textContent = i === 0 ? '📅 Esta Semana' : i === -1 ? '⏪ Semana Pasada' : `Semana ${i}`;
+                btn.textContent = i === 0 ? '📅 Esta Semana' : i === -1 ? ' Semana Pasada' : `Semana ${i}`;
                 btn.onclick = () => {
                     selectedWeek = i;
                     document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
@@ -442,11 +445,9 @@
             const firstDay = days[0];
             const lastDay = days[days.length - 1];
             
-            // Mostrar rango de fechas
             document.getElementById('weekRange').textContent = 
                 `📆 ${firstDay.fullDate} - ${lastDay.fullDate} (${firstDay.name} a ${lastDay.name})`;
 
-            // Construir tabla matriz
             let html = `<table class="summary-table">
                 <thead>
                     <tr>
@@ -490,7 +491,6 @@
             html += '</tbody></table>';
             document.getElementById('weeklySummaryTable').innerHTML = html;
 
-            // Calcular estadísticas de la semana
             const weekDates = days.map(d => d.date);
             const weekData = attendanceData.filter(r => weekDates.includes(r.fecha));
             const total = weekData.length;
@@ -499,7 +499,6 @@
             const tardanzas = weekData.filter(r => r.estado === 'tardanza').length;
             const porcentaje = total > 0 ? Math.round(((presentes + tardanzas) / total) * 100) : 0;
 
-            // Mini stats
             document.getElementById('statsRow').innerHTML = `
                 <div class="stat-mini" style="background: linear-gradient(135deg, #667eea, #764ba2);">
                     <div class="num">${total}</div>
@@ -519,7 +518,6 @@
                 </div>
             `;
 
-            // Barra de progreso
             const progressFill = document.getElementById('progressFill');
             progressFill.style.width = porcentaje + '%';
             progressFill.textContent = porcentaje + '%';
