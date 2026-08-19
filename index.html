@@ -47,7 +47,7 @@
             font-weight: 600;
             color: #333;
         }
-        input, select {
+        input[type="file"], input[type="date"] {
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
@@ -55,7 +55,7 @@
             font-size: 1rem;
             transition: border-color 0.3s;
         }
-        input:focus, select:focus {
+        input:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -75,11 +75,21 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
+        .btn-success {
+            background: #00b894;
+        }
+        .btn-success:hover {
+            background: #00a383;
+        }
         .btn-danger {
             background: #e74c3c;
         }
         .btn-danger:hover {
             background: #c0392b;
+        }
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 0.9rem;
         }
         table {
             width: 100%;
@@ -99,23 +109,45 @@
         tr:hover {
             background: #f8f9fa;
         }
-        .status {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
+        .status-buttons {
+            display: flex;
+            gap: 5px;
         }
-        .status-presente {
-            background: #d4edda;
-            color: #155724;
+        .status-btn {
+            padding: 8px 15px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
         }
-        .status-ausente {
-            background: #f8d7da;
-            color: #721c24;
+        .status-btn:hover {
+            transform: scale(1.05);
         }
-        .status-tardanza {
-            background: #fff3cd;
-            color: #856404;
+        .status-btn.presente {
+            border-color: #00b894;
+            color: #00b894;
+        }
+        .status-btn.presente.active {
+            background: #00b894;
+            color: white;
+        }
+        .status-btn.ausente {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+        .status-btn.ausente.active {
+            background: #e74c3c;
+            color: white;
+        }
+        .status-btn.tardanza {
+            border-color: #fdcb6e;
+            color: #fdcb6e;
+        }
+        .status-btn.tardanza.active {
+            background: #fdcb6e;
+            color: white;
         }
         .stats-grid {
             display: grid;
@@ -180,11 +212,50 @@
             padding: 40px;
             color: #999;
         }
+        .date-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .current-date {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+        .student-count {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        .csv-format {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .csv-format code {
+            background: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
         @media (max-width: 768px) {
             h1 { font-size: 1.8rem; }
             .card { padding: 20px; }
-            table { font-size: 0.9rem; }
+            table { font-size: 0.85rem; }
             th, td { padding: 8px; }
+            .status-buttons { flex-direction: column; }
+            .status-btn { width: 100%; }
         }
     </style>
 </head>
@@ -192,29 +263,36 @@
     <div class="container">
         <h1>📋 Control de Asistencia</h1>
         
-        <!-- Formulario de Registro -->
+        <!-- Carga de Alumnos -->
         <div class="card">
-            <h2>Registrar Asistencia</h2>
-            <form id="attendanceForm">
-                <div class="form-group">
-                    <label for="nombre">Nombre Completo</label>
-                    <input type="text" id="nombre" required placeholder="Ej: Juan Pérez">
+            <h2>📁 Cargar Lista de Alumnos</h2>
+            <div class="form-group">
+                <label for="csvFile">Selecciona tu archivo CSV</label>
+                <input type="file" id="csvFile" accept=".csv">
+                <div class="csv-format">
+                    <strong>Formato del CSV:</strong> El archivo debe tener una columna con los nombres.<br>
+                    Ejemplo: <code>nombre</code> o <code>Nombre Completo</code><br>
+                    El sistema detectará automáticamente la columna de nombres.
                 </div>
-                <div class="form-group">
-                    <label for="fecha">Fecha</label>
-                    <input type="date" id="fecha" required>
+            </div>
+            <div id="studentInfo"></div>
+        </div>
+
+        <!-- Control de Asistencia -->
+        <div class="card" id="attendanceCard" style="display: none;">
+            <h2>✅ Registrar Asistencia</h2>
+            <div class="date-display">
+                <div>
+                    <label for="fecha" style="margin-bottom: 5px;">Fecha:</label>
+                    <input type="date" id="fecha" style="width: auto; display: inline-block;">
                 </div>
-                <div class="form-group">
-                    <label for="estado">Estado</label>
-                    <select id="estado" required>
-                        <option value="">Seleccionar estado</option>
-                        <option value="presente">✅ Presente</option>
-                        <option value="ausente">❌ Ausente</option>
-                        <option value="tardanza">⏰ Tardanza</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn">Registrar Asistencia</button>
-            </form>
+                <div class="current-date" id="currentDate"></div>
+                <div class="student-count" id="studentCount"></div>
+            </div>
+            <div id="attendanceTable"></div>
+            <button class="btn btn-success" onclick="saveAttendance()" style="margin-top: 20px;">
+                💾 Guardar Asistencia
+            </button>
         </div>
 
         <!-- Resumen Semanal -->
@@ -241,20 +319,191 @@
     </div>
 
     <script>
-        // Inicializar datos
+        // Variables globales
+        let students = JSON.parse(localStorage.getItem('students')) || [];
         let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
         let selectedWeek = 'current';
+        let tempAttendance = {}; // Para guardar asistencia temporal antes de guardar
 
         // Establecer fecha actual por defecto
         document.getElementById('fecha').valueAsDate = new Date();
+        updateCurrentDate();
 
-        // Función para obtener la semana de una fecha
-        function getWeekNumber(date) {
-            const d = new Date(date);
-            const dayNum = d.getDay() || 7;
-            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        // Manejar cambio de fecha
+        document.getElementById('fecha').addEventListener('change', function() {
+            updateCurrentDate();
+            renderAttendanceTable();
+        });
+
+        // Actualizar fecha mostrada
+        function updateCurrentDate() {
+            const fechaInput = document.getElementById('fecha').value;
+            const date = new Date(fechaInput + 'T00:00:00');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = date.toLocaleDateString('es', options);
+        }
+
+        // Cargar CSV
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const text = event.target.result;
+                parseCSV(text);
+            };
+            reader.readAsText(file);
+        });
+
+        // Parsear CSV
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            if (lines.length === 0) {
+                alert('El archivo CSV está vacío');
+                return;
+            }
+
+            // Detectar encabezados
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            
+            // Buscar columna de nombres (intentar diferentes nombres comunes)
+            let nameColumnIndex = -1;
+            const nameKeywords = ['nombre', 'name', 'alumno', 'student', 'nombre completo', 'full name'];
+            
+            for (let i = 0; i < headers.length; i++) {
+                if (nameKeywords.some(keyword => headers[i].includes(keyword))) {
+                    nameColumnIndex = i;
+                    break;
+                }
+            }
+
+            // Si no encuentra, usar la primera columna
+            if (nameColumnIndex === -1) {
+                nameColumnIndex = 0;
+            }
+
+            // Extraer nombres
+            students = [];
+            for (let i = 1; i < lines.length; i++) {
+                const columns = lines[i].split(',');
+                if (columns[nameColumnIndex]) {
+                    const name = columns[nameColumnIndex].trim();
+                    if (name && name !== '') {
+                        students.push(name);
+                    }
+                }
+            }
+
+            // Guardar en localStorage
+            localStorage.setItem('students', JSON.stringify(students));
+
+            // Mostrar información
+            document.getElementById('studentInfo').innerHTML = `
+                <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                    ✅ <strong>${students.length} alumnos</strong> cargados correctamente
+                </div>
+            `;
+
+            // Mostrar sección de asistencia
+            document.getElementById('attendanceCard').style.display = 'block';
+            document.getElementById('studentCount').textContent = `${students.length} alumnos`;
+            
+            renderAttendanceTable();
+            renderAll();
+        }
+
+        // Renderizar tabla de asistencia
+        function renderAttendanceTable() {
+            const attendanceTable = document.getElementById('attendanceTable');
+            const fecha = document.getElementById('fecha').value;
+
+            if (students.length === 0) {
+                attendanceTable.innerHTML = '<div class="empty-state">No hay alumnos cargados. Por favor, carga un archivo CSV primero.</div>';
+                return;
+            }
+
+            // Cargar asistencia existente para esta fecha
+            tempAttendance = {};
+            const existingRecords = attendanceData.filter(r => r.fecha === fecha);
+            existingRecords.forEach(record => {
+                tempAttendance[record.nombre] = record.estado;
+            });
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Nombre del Alumno</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            students.forEach((student, index) => {
+                const currentState = tempAttendance[student] || '';
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${student}</td>
+                        <td>
+                            <div class="status-buttons">
+                                <button class="status-btn presente ${currentState === 'presente' ? 'active' : ''}" 
+                                        onclick="setStatus('${student}', 'presente')">
+                                    ✅ Presente
+                                </button>
+                                <button class="status-btn ausente ${currentState === 'ausente' ? 'active' : ''}" 
+                                        onclick="setStatus('${student}', 'ausente')">
+                                    ❌ Ausente
+                                </button>
+                                <button class="status-btn tardanza ${currentState === 'tardanza' ? 'active' : ''}" 
+                                        onclick="setStatus('${student}', 'tardanza')">
+                                    ⏰ Tardanza
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            attendanceTable.innerHTML = html;
+        }
+
+        // Establecer estado de un alumno
+        function setStatus(student, status) {
+            tempAttendance[student] = status;
+            renderAttendanceTable();
+        }
+
+        // Guardar asistencia
+        function saveAttendance() {
+            const fecha = document.getElementById('fecha').value;
+            
+            if (Object.keys(tempAttendance).length === 0) {
+                alert('Por favor, marca al menos un alumno');
+                return;
+            }
+
+            // Eliminar registros anteriores de esta fecha
+            attendanceData = attendanceData.filter(r => r.fecha !== fecha);
+
+            // Agregar nuevos registros
+            Object.keys(tempAttendance).forEach(student => {
+                attendanceData.push({
+                    nombre: student,
+                    fecha: fecha,
+                    estado: tempAttendance[student]
+                });
+            });
+
+            // Guardar en localStorage
+            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+
+            alert('✅ Asistencia guardada correctamente');
+            renderAll();
         }
 
         // Función para obtener el rango de fechas de una semana
@@ -362,10 +611,10 @@
                 html += `
                     <tr>
                         <td>${record.nombre}</td>
-                        <td>${new Date(record.fecha).toLocaleDateString('es')}</td>
+                        <td>${new Date(record.fecha + 'T00:00:00').toLocaleDateString('es')}</td>
                         <td><span class="status ${statusClass}">${statusText}</span></td>
                         <td>
-                            <button class="btn btn-danger" onclick="deleteRecord(${index})" style="padding: 5px 15px; font-size: 0.85rem;">
+                            <button class="btn btn-danger btn-small" onclick="deleteRecord(${index})">
                                 Eliminar
                             </button>
                         </td>
@@ -375,11 +624,6 @@
 
             html += '</tbody></table>';
             historyTable.innerHTML = html;
-        }
-
-        // Guardar datos en localStorage
-        function saveData() {
-            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
         }
 
         // Eliminar registro
@@ -393,7 +637,7 @@
                     r.estado === recordToDelete.estado
                 );
                 attendanceData.splice(originalIndex, 1);
-                saveData();
+                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
                 renderAll();
             }
         }
@@ -402,28 +646,10 @@
         function clearAllData() {
             if (confirm('¿Estás seguro de borrar TODO el historial? Esta acción no se puede deshacer.')) {
                 attendanceData = [];
-                saveData();
+                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
                 renderAll();
             }
         }
-
-        // Manejar envío del formulario
-        document.getElementById('attendanceForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const nombre = document.getElementById('nombre').value;
-            const fecha = document.getElementById('fecha').value;
-            const estado = document.getElementById('estado').value;
-
-            attendanceData.push({ nombre, fecha, estado });
-            saveData();
-            
-            this.reset();
-            document.getElementById('fecha').valueAsDate = new Date();
-            
-            alert('✅ Asistencia registrada correctamente');
-            renderAll();
-        });
 
         // Renderizar todo
         function renderAll() {
@@ -433,6 +659,16 @@
         }
 
         // Inicializar
+        if (students.length > 0) {
+            document.getElementById('studentInfo').innerHTML = `
+                <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                    ✅ <strong>${students.length} alumnos</strong> cargados
+                </div>
+            `;
+            document.getElementById('attendanceCard').style.display = 'block';
+            document.getElementById('studentCount').textContent = `${students.length} alumnos`;
+            renderAttendanceTable();
+        }
         renderAll();
     </script>
 </body>
