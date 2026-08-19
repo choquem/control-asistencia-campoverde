@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
@@ -39,26 +39,140 @@
             cursor: pointer;
             margin-top: 20px;
         }
-        .btn:hover { background: #00a383; }
+        .btn:hover { background: #00a383; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,184,148,0.3); }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: #667eea; color: white; padding: 15px; text-align: left; }
         td { padding: 15px; border-bottom: 1px solid #e0e0e0; }
+        tr:hover { background: #f8f9fa; }
+        
+        /* BOTONES MEJORADOS - MUY VISIBLES */
+        .status-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
         .status-btn {
-            padding: 10px 20px;
+            padding: 15px 25px;
             border: 3px solid #e0e0e0;
             background: white;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 1rem;
+            transition: all 0.3s;
+            font-size: 1.1rem;
             font-weight: 600;
-            margin-right: 10px;
+            min-width: 140px;
+            text-align: center;
+            position: relative;
         }
-        .status-btn.active.presente { background: #00b894; color: white; border-color: #00b894; }
-        .status-btn.active.ausente { background: #e74c3c; color: white; border-color: #e74c3c; }
-        .status-btn.active.tardanza { background: #fdcb6e; color: white; border-color: #fdcb6e; }
-        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin: 10px 0; }
+        .status-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .status-btn .icon { font-size: 1.8rem; display: block; margin-bottom: 5px; }
+        .status-btn .label { font-size: 0.9rem; }
+        
+        /* PRESENTE - Verde brillante */
+        .status-btn.presente { border-color: #00b894; color: #00b894; }
+        .status-btn.presente.active {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white; border-color: #00b894; box-shadow: 0 5px 20px rgba(0,184,148,0.5); transform: scale(1.05);
+        }
+        .status-btn.presente.active::after {
+            content: '✓'; position: absolute; top: -10px; right: -10px; background: white; color: #00b894;
+            width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* AUSENTE - Rojo brillante */
+        .status-btn.ausente { border-color: #e74c3c; color: #e74c3c; }
+        .status-btn.ausente.active {
+            background: linear-gradient(135deg, #e74c3c 0%, #fd79a8 100%);
+            color: white; border-color: #e74c3c; box-shadow: 0 5px 20px rgba(231,76,60,0.5); transform: scale(1.05);
+        }
+        .status-btn.ausente.active::after {
+            content: '✓'; position: absolute; top: -10px; right: -10px; background: white; color: #e74c3c;
+            width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* TARDANZA - Amarillo/Naranja brillante */
+        .status-btn.tardanza { border-color: #fdcb6e; color: #e17055; }
+        .status-btn.tardanza.active {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+            color: white; border-color: #fdcb6e; box-shadow: 0 5px 20px rgba(253,203,110,0.5); transform: scale(1.05);
+        }
+        .status-btn.tardanza.active::after {
+            content: '✓'; position: absolute; top: -10px; right: -10px; background: white; color: #fdcb6e;
+            width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* RESUMEN SEMANAL */
+        .week-selector { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .week-btn {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+        .week-btn:hover { background: #e0e0e0; }
+        .week-btn.active { background: #667eea; color: white; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-number { font-size: 2.5rem; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { font-size: 0.9rem; opacity: 0.9; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00d4ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 0.5s;
+        }
+        
         .success { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin: 10px 0; }
+        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin: 10px 0; }
         .loading { color: #667eea; font-size: 1.1rem; padding: 20px; text-align: center; }
+        
+        .date-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .current-date { font-size: 1.2rem; font-weight: 600; color: #667eea; }
+        .student-count { background: #667eea; color: white; padding: 8px 15px; border-radius: 20px; font-size: 0.9rem; }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .card { padding: 20px; }
+            table { font-size: 0.85rem; }
+            th, td { padding: 10px; }
+            .status-buttons { flex-direction: column; }
+            .status-btn { width: 100%; min-width: auto; }
+        }
     </style>
 </head>
 <body>
@@ -72,30 +186,84 @@
 
         <div class="card" id="attendanceCard" style="display: none;">
             <h2>✅ Registrar Asistencia</h2>
-            <div style="margin-bottom: 20px;">
-                <label>Fecha: </label>
-                <input type="date" id="fecha">
+            <div class="date-display">
+                <div>
+                    <label for="fecha" style="margin-bottom: 5px; display: block;">Fecha:</label>
+                    <input type="date" id="fecha">
+                </div>
+                <div class="current-date" id="currentDate"></div>
+                <div class="student-count" id="studentCount"></div>
             </div>
             <div id="attendanceTable"></div>
             <button class="btn" onclick="saveAttendance()">💾 Guardar Asistencia</button>
+        </div>
+
+        <div class="card">
+            <h2>📊 Resumen Semanal</h2>
+            <div class="week-selector" id="weekSelector"></div>
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Total Registros</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Presentes</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Tardanzas</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #e74c3c 0%, #fd79a8 100%);">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Ausentes</div>
+                </div>
+            </div>
+            <div style="margin-top: 30px;">
+                <label style="margin-bottom: 10px; display: block; font-weight: 600;">Porcentaje de Asistencia General:</label>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2> Historial de Asistencia</h2>
+            <div id="historyTable"></div>
+            <button class="btn btn-danger" onclick="clearAllData()" style="margin-top: 20px;">
+                🗑️ Borrar Todo el Historial
+            </button>
         </div>
     </div>
 
     <script>
         let students = [];
         let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+        let selectedWeek = 0; // 0 = esta semana, -1 = semana pasada, etc.
         let tempAttendance = {};
 
         document.getElementById('fecha').valueAsDate = new Date();
+        updateCurrentDate();
 
-        // CARGAR CSV DESDE GITHUB
+        document.getElementById('fecha').addEventListener('change', function() {
+            updateCurrentDate();
+            renderAttendanceTable();
+        });
+
+        function updateCurrentDate() {
+            const fechaInput = document.getElementById('fecha').value;
+            const date = new Date(fechaInput + 'T00:00:00');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = date.toLocaleDateString('es', options);
+        }
+
+        // CARGAR CSV
         fetch('https://raw.githubusercontent.com/choquem/mi-primera-pagina/main/students.csv')
             .then(response => {
                 if (!response.ok) throw new Error('Error al cargar CSV');
                 return response.text();
             })
             .then(text => {
-                console.log('CSV cargado:', text);
                 const lines = text.split('\n').filter(line => line.trim() !== '');
                 students = [];
                 for (let i = 1; i < lines.length; i++) {
@@ -104,7 +272,6 @@
                         students.push(columns[1].trim());
                     }
                 }
-                console.log('Alumnos:', students);
                 document.getElementById('studentInfo').innerHTML = `
                     <div class="success">
                         ✅ <strong>${students.length} alumnos</strong> cargados<br>
@@ -112,10 +279,13 @@
                     </div>
                 `;
                 document.getElementById('attendanceCard').style.display = 'block';
+                document.getElementById('studentCount').textContent = `${students.length} alumnos`;
                 renderAttendanceTable();
+                renderWeekSelector();
+                renderWeeklyStats();
+                renderHistory();
             })
             .catch(error => {
-                console.error('Error:', error);
                 document.getElementById('studentInfo').innerHTML = `
                     <div class="error">
                         ❌ Error al cargar: ${error.message}
@@ -132,7 +302,7 @@
             });
 
             let html = `<table>
-                <thead><tr><th>Alumno</th><th>Estado</th></tr></thead>
+                <thead><tr><th style="width: 30%;">Alumno</th><th>Estado</th></tr></thead>
                 <tbody>`;
 
             students.forEach((student, index) => {
@@ -140,12 +310,23 @@
                 html += `<tr>
                     <td><strong>${index + 1}. ${student}</strong></td>
                     <td>
-                        <button class="status-btn ${currentState === 'presente' ? 'active presente' : ''}" 
-                                onclick="setStatus('${student}', 'presente')">✅ Presente</button>
-                        <button class="status-btn ${currentState === 'ausente' ? 'active ausente' : ''}" 
-                                onclick="setStatus('${student}', 'ausente')">❌ Ausente</button>
-                        <button class="status-btn ${currentState === 'tardanza' ? 'active tardanza' : ''}" 
-                                onclick="setStatus('${student}', 'tardanza')">⏰ Tardanza</button>
+                        <div class="status-buttons">
+                            <button class="status-btn presente ${currentState === 'presente' ? 'active' : ''}" 
+                                    onclick="setStatus('${student}', 'presente')">
+                                <span class="icon">✅</span>
+                                <span class="label">Presente</span>
+                            </button>
+                            <button class="status-btn ausente ${currentState === 'ausente' ? 'active' : ''}" 
+                                    onclick="setStatus('${student}', 'ausente')">
+                                <span class="icon">❌</span>
+                                <span class="label">Ausente</span>
+                            </button>
+                            <button class="status-btn tardanza ${currentState === 'tardanza' ? 'active' : ''}" 
+                                    onclick="setStatus('${student}', 'tardanza')">
+                                <span class="icon">⏰</span>
+                                <span class="label">Tardanza</span>
+                            </button>
+                        </div>
                     </td>
                 </tr>`;
             });
@@ -171,9 +352,110 @@
             });
             localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
             alert('✅ Asistencia guardada correctamente');
+            renderWeeklyStats();
+            renderHistory();
         }
 
-        document.getElementById('fecha').addEventListener('change', renderAttendanceTable);
+        // RESUMEN SEMANAL
+        function getWeekRange(weekOffset = 0) {
+            const now = new Date();
+            const currentDay = now.getDay();
+            const diff = currentDay === 0 ? 6 : currentDay - 1;
+            const monday = new Date(now);
+            monday.setDate(now.getDate() - diff + (weekOffset * 7));
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            return {
+                start: monday.toISOString().split('T')[0],
+                end: sunday.toISOString().split('T')[0]
+            };
+        }
+
+        function renderWeekSelector() {
+            const selector = document.getElementById('weekSelector');
+            selector.innerHTML = '';
+            for (let i = 0; i >= -3; i--) {
+                const btn = document.createElement('button');
+                btn.className = 'week-btn' + (i === selectedWeek ? ' active' : '');
+                btn.textContent = i === 0 ? 'Esta Semana' : i === -1 ? 'Semana Pasada' : `Semana ${i}`;
+                btn.onclick = () => {
+                    selectedWeek = i;
+                    document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderWeeklyStats();
+                };
+                selector.appendChild(btn);
+            }
+        }
+
+        function renderWeeklyStats() {
+            const week = getWeekRange(selectedWeek);
+            const weekData = attendanceData.filter(record => {
+                return record.fecha >= week.start && record.fecha <= week.end;
+            });
+
+            const total = weekData.length;
+            const presentes = weekData.filter(r => r.estado === 'presente').length;
+            const ausentes = weekData.filter(r => r.estado === 'ausente').length;
+            const tardanzas = weekData.filter(r => r.estado === 'tardanza').length;
+            const porcentaje = total > 0 ? Math.round(((presentes + tardanzas) / total) * 100) : 0;
+
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${total}</div>
+                    <div class="stat-label">Total Registros</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);">
+                    <div class="stat-number">${presentes}</div>
+                    <div class="stat-label">Presentes</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);">
+                    <div class="stat-number">${tardanzas}</div>
+                    <div class="stat-label">Tardanzas</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #e74c3c 0%, #fd79a8 100%);">
+                    <div class="stat-number">${ausentes}</div>
+                    <div class="stat-label">Ausentes</div>
+                </div>
+            `;
+
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = porcentaje + '%';
+            progressFill.textContent = porcentaje + '%';
+        }
+
+        function renderHistory() {
+            const historyTable = document.getElementById('historyTable');
+            if (attendanceData.length === 0) {
+                historyTable.innerHTML = '<div class="loading">No hay registros aún</div>';
+                return;
+            }
+            const sortedData = [...attendanceData].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            let html = `<table>
+                <thead><tr><th>Alumno</th><th>Fecha</th><th>Estado</th></tr></thead>
+                <tbody>`;
+            sortedData.forEach(record => {
+                const color = record.estado === 'presente' ? '#d4edda' : record.estado === 'ausente' ? '#f8d7da' : '#fff3cd';
+                const textColor = record.estado === 'presente' ? '#155724' : record.estado === 'ausente' ? '#721c24' : '#856404';
+                const icon = record.estado === 'presente' ? '✅' : record.estado === 'ausente' ? '❌' : '⏰';
+                html += `<tr>
+                    <td>${record.nombre}</td>
+                    <td>${new Date(record.fecha + 'T00:00:00').toLocaleDateString('es')}</td>
+                    <td><span style="background: ${color}; color: ${textColor}; padding: 5px 12px; border-radius: 12px; font-weight: 600;">${icon} ${record.estado}</span></td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            historyTable.innerHTML = html;
+        }
+
+        function clearAllData() {
+            if (confirm('¿Estás seguro de borrar TODO el historial?')) {
+                attendanceData = [];
+                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+                renderWeeklyStats();
+                renderHistory();
+            }
+        }
     </script>
 </body>
 </html>
