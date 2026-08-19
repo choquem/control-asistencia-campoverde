@@ -5,27 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Asistencia</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-            font-size: 2.5rem;
-        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; color: white; margin-bottom: 30px; font-size: 2.5rem; }
         .card {
             background: white;
             border-radius: 15px;
@@ -33,32 +21,14 @@
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
-        .card h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.8rem;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-        input[type="file"], input[type="date"] {
-            width: 100%;
+        .card h2 { color: #667eea; margin-bottom: 20px; font-size: 1.8rem; }
+        input[type="date"] {
             padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 1rem;
-            transition: border-color 0.3s;
         }
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+        input:focus { outline: none; border-color: #667eea; }
         .btn {
             padding: 12px 30px;
             background: #667eea;
@@ -70,50 +40,17 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        .btn:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        .btn-success {
-            background: #00b894;
-        }
-        .btn-success:hover {
-            background: #00a383;
-        }
-        .btn-danger {
-            background: #e74c3c;
-        }
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-        .btn-small {
-            padding: 8px 15px;
-            font-size: 0.9rem;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th {
-            background: #667eea;
-            color: white;
-            padding: 15px;
-            text-align: left;
-        }
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        tr:hover {
-            background: #f8f9fa;
-        }
-        .status-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+        .btn:hover { background: #5568d3; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn-success { background: #00b894; }
+        .btn-success:hover { background: #00a383; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-small { padding: 8px 15px; font-size: 0.9rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #667eea; color: white; padding: 15px; text-align: left; }
+        td { padding: 15px; border-bottom: 1px solid #e0e0e0; }
+        tr:hover { background: #f8f9fa; }
+        .status-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
         .status-btn {
             padding: 15px 25px;
             border: 3px solid #e0e0e0;
@@ -127,229 +64,62 @@
             text-align: center;
             position: relative;
         }
-        .status-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .status-btn .icon {
-            font-size: 1.8rem;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .status-btn.presente {
-            border-color: #00b894;
-            color: #00b894;
-        }
+        .status-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .status-btn .icon { font-size: 1.8rem; display: block; margin-bottom: 5px; }
+        
+        .status-btn.presente { border-color: #00b894; color: #00b894; }
         .status-btn.presente.active {
             background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
-            color: white;
-            border-color: #00b894;
-            box-shadow: 0 5px 20px rgba(0, 184, 148, 0.5);
-            transform: scale(1.05);
+            color: white; border-color: #00b894; box-shadow: 0 5px 20px rgba(0, 184, 148, 0.5); transform: scale(1.05);
         }
         .status-btn.presente.active::after {
-            content: '✓';
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background: white;
-            color: #00b894;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            content: '✓'; position: absolute; top: -10px; right: -10px; background: white; color: #00b894;
+            width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-        .status-btn.ausente {
-            border-color: #e74c3c;
-            color: #e74c3c;
-        }
+        
+        .status-btn.ausente { border-color: #e74c3c; color: #e74c3c; }
         .status-btn.ausente.active {
             background: linear-gradient(135deg, #e74c3c 0%, #fd79a8 100%);
-            color: white;
-            border-color: #e74c3c;
-            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.5);
-            transform: scale(1.05);
+            color: white; border-color: #e74c3c; box-shadow: 0 5px 20px rgba(231, 76, 60, 0.5); transform: scale(1.05);
         }
         .status-btn.ausente.active::after {
-            content: '✓';
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background: white;
-            color: #e74c3c;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            content: '✓'; position: absolute; top: -10px; right: -10px; background: white; color: #e74c3c;
+            width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-        .status-btn.tardanza {
-            border-color: #fdcb6e;
-            color: #e17055;
-        }
+        
+        .status-btn.tardanza { border-color: #fdcb6e; color: #e17055; }
         .status-btn.tardanza.active {
             background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
-            color: white;
-            border-color: #fdcb6e;
-            box-shadow: 0 5px 20px rgba(253, 203, 110, 0.5);
-            transform: scale(1.05);
+            color: white; border-color: #fdcb6e; box-shadow: 0 5px 20px rgba(253, 203, 110, 0.5); transform: scale(1.05);
         }
         .status-btn.tardanza.active::after {
-            content: '✓';
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background: white;
-            color: #fdcb6e;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            content: '✓'; position: absolute; top: -10px; right: -10px; background: white; color: #fdcb6e;
+            width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 30px;
-            background: #e0e0e0;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00ff88, #00d4ff);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            transition: width 0.5s;
-        }
-        .week-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .week-btn {
-            padding: 10px 20px;
-            background: #f0f0f0;
-            border: 2px solid transparent;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .week-btn.active {
-            background: #667eea;
-            color: white;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-        .date-display {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .current-date {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #667eea;
-        }
-        .student-count {
-            background: #667eea;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-        }
-        .csv-format {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 0.9rem;
-            color: #666;
-        }
-        .csv-format code {
-            background: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-        }
-        .status-label {
-            font-size: 0.85rem;
-            display: block;
-            margin-top: 3px;
-        }
-        .save-indicator {
-            display: inline-block;
-            margin-left: 15px;
-            padding: 8px 15px;
-            background: #fdcb6e;
-            color: #333;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #667eea;
-            font-size: 1.1rem;
-        }
-        .loading::after {
-            content: '...';
-            animation: dots 1.5s steps(5, end) infinite;
-        }
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
-        }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; text-align: center; }
+        .stat-number { font-size: 2.5rem; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { font-size: 0.9rem; opacity: 0.9; }
+        .progress-bar { width: 100%; height: 30px; background: #e0e0e0; border-radius: 15px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #00ff88, #00d4ff); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; transition: width 0.5s; }
+        .week-selector { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .week-btn { padding: 10px 20px; background: #f0f0f0; border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .week-btn.active { background: #667eea; color: white; }
+        .empty-state { text-align: center; padding: 40px; color: #999; }
+        .date-display { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .current-date { font-size: 1.2rem; font-weight: 600; color: #667eea; }
+        .student-count { background: #667eea; color: white; padding: 8px 15px; border-radius: 20px; font-size: 0.9rem; }
+        .csv-format { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px; font-size: 0.9rem; color: #666; }
+        .csv-format code { background: white; padding: 2px 8px; border-radius: 4px; font-family: 'Courier New', monospace; }
+        .status-label { font-size: 0.85rem; display: block; margin-top: 3px; }
+        .save-indicator { display: inline-block; margin-left: 15px; padding: 8px 15px; background: #fdcb6e; color: #333; border-radius: 20px; font-size: 0.9rem; font-weight: 600; }
+        .loading { text-align: center; padding: 20px; color: #667eea; font-size: 1.1rem; }
+        .loading::after { content: '...'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60%, 100% { content: '...'; } }
         @media (max-width: 768px) {
             h1 { font-size: 1.8rem; }
             .card { padding: 20px; }
@@ -386,7 +156,7 @@
             </div>
             <div id="attendanceTable"></div>
             <button class="btn btn-success" onclick="saveAttendance()" style="margin-top: 20px;">
-                 Guardar Asistencia
+                💾 Guardar Asistencia
             </button>
             <span class="save-indicator" id="saveIndicator" style="display: none;">
                 ⚠️ Tienes cambios sin guardar
@@ -419,7 +189,6 @@
         let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
         let selectedWeek = 'current';
         let tempAttendance = {};
-        let hasUnsavedChanges = false;
 
         document.getElementById('fecha').valueAsDate = new Date();
         updateCurrentDate();
@@ -436,28 +205,30 @@
             document.getElementById('currentDate').textContent = date.toLocaleDateString('es', options);
         }
 
-        // ✅ CARGAR AUTOMÁTICAMENTE EL CSV AL INICIAR
         async function loadStudentsFromCSV() {
             try {
-                const response = await fetch('./students.csv');
+                // Añadimos un timestamp para evitar que el navegador use una versión en caché antigua
+                const response = await fetch('students.csv?t=' + new Date().getTime());
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const text = await response.text();
+                console.log('✅ CSV cargado exitosamente. Contenido:', text);
                 parseCSV(text);
                 
             } catch (error) {
-                console.error('Error al cargar students.csv:', error);
+                console.error('❌ Error al cargar students.csv:', error);
                 document.getElementById('studentInfo').innerHTML = `
                     <div style="background: #f8d7da; padding: 15px; border-radius: 8px; color: #721c24;">
-                        ❌ <strong>Error al cargar students.csv</strong><br>
+                        ❌ <strong>Error al cargar la lista de alumnos</strong><br>
                         <small>${error.message}</small><br><br>
-                        <strong>Soluciones:</strong><br>
-                        1. Verifica que el archivo <code>students.csv</code> existe en tu repositorio<br>
-                        2. Asegúrate de que GitHub Pages esté activado<br>
-                        3. Recarga la página (Ctrl+F5)
+                        <strong>Posibles soluciones:</strong><br>
+                        1. Asegúrate de que el archivo se llame exactamente <code>students.csv</code> (minúsculas).<br>
+                        2. Verifica que esté en la carpeta principal (root) de tu repositorio.<br>
+                        3. Espera 1-2 minutos, GitHub Pages a veces tarda en actualizar los archivos nuevos.<br>
+                        4. Presiona <strong>Ctrl + F5</strong> para borrar la caché del navegador.
                     </div>
                 `;
             }
@@ -470,15 +241,14 @@
                 return;
             }
 
-            // Detectar separador
             const firstLine = lines[0];
             let separator = ',';
-            if (firstLine.includes(';')) separator = ';';
+            if (firstLine.includes(',')) separator = ',';
+            else if (firstLine.includes(';')) separator = ';';
             else if (firstLine.includes('\t')) separator = '\t';
             
             const headers = lines[0].split(separator).map(h => h.trim().toLowerCase());
             
-            // Buscar columna de nombres
             let nameColumnIndex = -1;
             const nameKeywords = ['nombre', 'name', 'alumno', 'student', 'nombre completo', 'full name'];
             
@@ -489,26 +259,22 @@
                 }
             }
 
-            // Si no encuentra, usar la segunda columna si existe
-            if (nameColumnIndex === -1 && headers.length > 1) {
-                nameColumnIndex = 1;
-            } else if (nameColumnIndex === -1) {
-                nameColumnIndex = 0;
-            }
+            if (nameColumnIndex === -1 && headers.length > 1) nameColumnIndex = 1;
+            else if (nameColumnIndex === -1) nameColumnIndex = 0;
 
-            // Extraer nombres
             students = [];
             for (let i = 1; i < lines.length; i++) {
                 const columns = lines[i].split(separator);
                 if (columns[nameColumnIndex]) {
                     let name = columns[nameColumnIndex].trim();
-                    // Limpiar números al inicio
-                    name = name.replace(/^\d+\s*/, '');
+                    name = name.replace(/^\d+\s*/, ''); // Limpia números al inicio
                     if (name && name !== '') {
                         students.push(name);
                     }
                 }
             }
+
+            console.log('✅ Alumnos procesados:', students);
 
             document.getElementById('studentInfo').innerHTML = `
                 <div style="background: #d4edda; padding: 15px; border-radius: 8px;">
@@ -535,7 +301,6 @@
                 return;
             }
 
-            // Solo cargar registros existentes si tempAttendance está vacío para esta fecha
             if (Object.keys(tempAttendance).length === 0 || !tempAttendance._loadedFor || tempAttendance._loadedFor !== fecha) {
                 tempAttendance = { _loadedFor: fecha };
                 const existingRecords = attendanceData.filter(r => r.fecha === fecha);
@@ -552,231 +317,3 @@
                             <th style="width: 35%;">Nombre del Alumno</th>
                             <th>Estado</th>
                         </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            students.forEach((student, index) => {
-                const currentState = tempAttendance[student] || '';
-                html += `
-                    <tr>
-                        <td><strong>${index + 1}</strong></td>
-                        <td><strong>${student}</strong></td>
-                        <td>
-                            <div class="status-buttons">
-                                <button class="status-btn presente ${currentState === 'presente' ? 'active' : ''}" 
-                                        onclick="setStatus('${student.replace(/'/g, "\\'")}', 'presente')">
-                                    <span class="icon">✅</span>
-                                    <span class="status-label">Presente</span>
-                                </button>
-                                <button class="status-btn ausente ${currentState === 'ausente' ? 'active' : ''}" 
-                                        onclick="setStatus('${student.replace(/'/g, "\\'")}', 'ausente')">
-                                    <span class="icon"></span>
-                                    <span class="status-label">Ausente</span>
-                                </button>
-                                <button class="status-btn tardanza ${currentState === 'tardanza' ? 'active' : ''}" 
-                                        onclick="setStatus('${student.replace(/'/g, "\\'")}', 'tardanza')">
-                                    <span class="icon">⏰</span>
-                                    <span class="status-label">Tardanza</span>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            html += '</tbody></table>';
-            attendanceTable.innerHTML = html;
-        }
-
-        function setStatus(student, status) {
-            tempAttendance[student] = status;
-            hasUnsavedChanges = true;
-            document.getElementById('saveIndicator').style.display = 'inline-block';
-            
-            // Actualizar solo los botones de este alumno
-            const buttons = event.target.closest('.status-buttons').querySelectorAll('.status-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.closest('.status-btn').classList.add('active');
-        }
-
-        function saveAttendance() {
-            const fecha = document.getElementById('fecha').value;
-            
-            const validEntries = Object.keys(tempAttendance).filter(k => k !== '_loadedFor');
-            
-            if (validEntries.length === 0) {
-                alert('Por favor, marca al menos un alumno');
-                return;
-            }
-
-            attendanceData = attendanceData.filter(r => r.fecha !== fecha);
-
-            validEntries.forEach(student => {
-                attendanceData.push({
-                    nombre: student,
-                    fecha: fecha,
-                    estado: tempAttendance[student]
-                });
-            });
-
-            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
-            
-            hasUnsavedChanges = false;
-            document.getElementById('saveIndicator').style.display = 'none';
-            
-            alert('✅ Asistencia guardada correctamente');
-            renderAll();
-        }
-
-        function getWeekRange(weekOffset = 0) {
-            const now = new Date();
-            const currentDay = now.getDay();
-            const diff = currentDay === 0 ? 6 : currentDay - 1;
-            const monday = new Date(now);
-            monday.setDate(now.getDate() - diff + (weekOffset * 7));
-            const sunday = new Date(monday);
-            sunday.setDate(monday.getDate() + 6);
-            
-            return {
-                start: monday.toISOString().split('T')[0],
-                end: sunday.toISOString().split('T')[0],
-                label: `${monday.toLocaleDateString('es')} - ${sunday.toLocaleDateString('es')}`
-            };
-        }
-
-        function renderWeekSelector() {
-            const selector = document.getElementById('weekSelector');
-            selector.innerHTML = '';
-            
-            for (let i = 0; i >= -3; i--) {
-                const week = getWeekRange(i);
-                const btn = document.createElement('button');
-                btn.className = 'week-btn' + (i === 0 ? ' active' : '');
-                btn.textContent = i === 0 ? 'Esta Semana' : `Semana ${i === -1 ? 'Pasada' : `-${Math.abs(i)}`}`;
-                btn.onclick = () => {
-                    selectedWeek = i;
-                    document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    renderWeeklyStats();
-                };
-                selector.appendChild(btn);
-            }
-        }
-
-        function renderWeeklyStats() {
-            const week = getWeekRange(selectedWeek);
-            const weekData = attendanceData.filter(record => {
-                return record.fecha >= week.start && record.fecha <= week.end;
-            });
-
-            const total = weekData.length;
-            const presentes = weekData.filter(r => r.estado === 'presente').length;
-            const ausentes = weekData.filter(r => r.estado === 'ausente').length;
-            const tardanzas = weekData.filter(r => r.estado === 'tardanza').length;
-            const porcentaje = total > 0 ? Math.round(((presentes + tardanzas) / total) * 100) : 0;
-
-            const statsGrid = document.getElementById('statsGrid');
-            statsGrid.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-number">${total}</div>
-                    <div class="stat-label">Total Registros</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);">
-                    <div class="stat-number">${presentes}</div>
-                    <div class="stat-label">Presentes</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #e17055 0%, #fdcb6e 100%);">
-                    <div class="stat-number">${tardanzas}</div>
-                    <div class="stat-label">Tardanzas</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #d63031 0%, #e84393 100%);">
-                    <div class="stat-number">${ausentes}</div>
-                    <div class="stat-label">Ausentes</div>
-                </div>
-            `;
-
-            const progressFill = document.getElementById('progressFill');
-            progressFill.style.width = porcentaje + '%';
-            progressFill.textContent = porcentaje + '%';
-        }
-
-        function renderHistory() {
-            const historyTable = document.getElementById('historyTable');
-            
-            if (attendanceData.length === 0) {
-                historyTable.innerHTML = '<div class="empty-state">No hay registros aún. ¡Comienza registrando asistencia!</div>';
-                return;
-            }
-
-            const sortedData = [...attendanceData].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-            
-            let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Fecha</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            sortedData.forEach((record, index) => {
-                const statusClass = `status-${record.estado}`;
-                const statusText = record.estado.charAt(0).toUpperCase() + record.estado.slice(1);
-                html += `
-                    <tr>
-                        <td>${record.nombre}</td>
-                        <td>${new Date(record.fecha + 'T00:00:00').toLocaleDateString('es')}</td>
-                        <td><span class="status ${statusClass}">${statusText}</span></td>
-                        <td>
-                            <button class="btn btn-danger btn-small" onclick="deleteRecord(${index})">
-                                Eliminar
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            html += '</tbody></table>';
-            historyTable.innerHTML = html;
-        }
-
-        function deleteRecord(index) {
-            if (confirm('¿Estás seguro de eliminar este registro?')) {
-                const sortedData = [...attendanceData].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-                const recordToDelete = sortedData[index];
-                const originalIndex = attendanceData.findIndex(r => 
-                    r.nombre === recordToDelete.nombre && 
-                    r.fecha === recordToDelete.fecha && 
-                    r.estado === recordToDelete.estado
-                );
-                attendanceData.splice(originalIndex, 1);
-                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
-                renderAll();
-            }
-        }
-
-        function clearAllData() {
-            if (confirm('¿Estás seguro de borrar TODO el historial? Esta acción no se puede deshacer.')) {
-                attendanceData = [];
-                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
-                renderAll();
-            }
-        }
-
-        function renderAll() {
-            renderWeekSelector();
-            renderWeeklyStats();
-            renderHistory();
-        }
-
-        // ✅ CARGAR AUTOMÁTICAMENTE AL INICIAR
-        loadStudentsFromCSV();
-        renderAll();
-    </script>
-</body>
-</html>
