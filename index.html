@@ -3,30 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Página Web</title>
+    <title>Mi Landing Page</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #f4f4f4;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
             color: #333;
         }
-        h1 { color: #0366d6; }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        .hero {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 120px 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: #111;
+        }
+        .subtitle {
+            font-size: 1.3rem;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: #0066ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,102,255,0.2);
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            max-width: 1000px;
+            margin: 100px auto;
+            padding: 0 20px;
+        }
+        .feature {
+            text-align: center;
+            padding: 30px;
+        }
+        .feature h3 {
+            margin: 15px 0;
+            font-size: 1.5rem;
         }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>¡Hola! 👋</h1>
-        <p>Esta es mi página web creada con GitHub Pages.</p>
-        <p>Puedes editar este archivo <code>index.html</code> para personalizarla.</p>
-    </div>
+    <section class="hero">
+        <h1>Hola, soy [Tu Nombre]</h1>
+        <p class="subtitle">Desarrollador web creando experiencias digitales increíbles</p>
+        <a href="#contacto" class="cta-button">Contáctame</a>
+    </section>
+    
+    <section class="features">
+        <div class="feature">
+            <h3>🎨 Diseño</h3>
+            <p>Interfaces modernas y atractivas que captan la atención</p>
+        </div>
+        <div class="feature">
+            <h3>💻 Desarrollo</h3>
+            <p>Código limpio y optimizado para mejor rendimiento</p>
+        </div>
+        <div class="feature">
+            <h3>🚀 Resultados</h3>
+            <p>Proyectos que cumplen objetivos y superan expectativas</p>
+        </div>
+    </section>
 </body>
 </html>
