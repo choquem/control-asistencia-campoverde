@@ -103,7 +103,7 @@
             text-align: left;
         }
         td {
-            padding: 12px 15px;
+            padding: 15px;
             border-bottom: 1px solid #e0e0e0;
         }
         tr:hover {
@@ -111,43 +111,114 @@
         }
         .status-buttons {
             display: flex;
-            gap: 5px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         .status-btn {
-            padding: 8px 15px;
-            border: 2px solid #e0e0e0;
+            padding: 15px 25px;
+            border: 3px solid #e0e0e0;
             background: white;
-            border-radius: 5px;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 0.9rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            min-width: 140px;
+            text-align: center;
+            position: relative;
         }
         .status-btn:hover {
-            transform: scale(1.05);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .status-btn .icon {
+            font-size: 1.8rem;
+            display: block;
+            margin-bottom: 5px;
         }
         .status-btn.presente {
             border-color: #00b894;
             color: #00b894;
         }
         .status-btn.presente.active {
-            background: #00b894;
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
             color: white;
+            border-color: #00b894;
+            box-shadow: 0 5px 20px rgba(0, 184, 148, 0.5);
+            transform: scale(1.05);
+        }
+        .status-btn.presente.active::after {
+            content: '✓';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: white;
+            color: #00b894;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         .status-btn.ausente {
             border-color: #e74c3c;
             color: #e74c3c;
         }
         .status-btn.ausente.active {
-            background: #e74c3c;
+            background: linear-gradient(135deg, #e74c3c 0%, #fd79a8 100%);
             color: white;
+            border-color: #e74c3c;
+            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.5);
+            transform: scale(1.05);
+        }
+        .status-btn.ausente.active::after {
+            content: '✓';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: white;
+            color: #e74c3c;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         .status-btn.tardanza {
             border-color: #fdcb6e;
-            color: #fdcb6e;
+            color: #e17055;
         }
         .status-btn.tardanza.active {
-            background: #fdcb6e;
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
             color: white;
+            border-color: #fdcb6e;
+            box-shadow: 0 5px 20px rgba(253, 203, 110, 0.5);
+            transform: scale(1.05);
+        }
+        .status-btn.tardanza.active::after {
+            content: '✓';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: white;
+            color: #fdcb6e;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         .stats-grid {
             display: grid;
@@ -249,13 +320,28 @@
             border-radius: 4px;
             font-family: 'Courier New', monospace;
         }
+        .status-label {
+            font-size: 0.85rem;
+            display: block;
+            margin-top: 3px;
+        }
+        .save-indicator {
+            display: inline-block;
+            margin-left: 15px;
+            padding: 8px 15px;
+            background: #fdcb6e;
+            color: #333;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
         @media (max-width: 768px) {
             h1 { font-size: 1.8rem; }
             .card { padding: 20px; }
             table { font-size: 0.85rem; }
-            th, td { padding: 8px; }
+            th, td { padding: 10px; }
             .status-buttons { flex-direction: column; }
-            .status-btn { width: 100%; }
+            .status-btn { width: 100%; min-width: auto; }
         }
     </style>
 </head>
@@ -263,9 +349,8 @@
     <div class="container">
         <h1>📋 Control de Asistencia</h1>
         
-        <!-- Carga de Alumnos -->
         <div class="card">
-            <h2>📁 Cargar Lista de Alumnos</h2>
+            <h2> Cargar Lista de Alumnos</h2>
             <div class="form-group">
                 <label for="csvFile">Selecciona tu archivo CSV</label>
                 <input type="file" id="csvFile" accept=".csv">
@@ -278,7 +363,6 @@
             <div id="studentInfo"></div>
         </div>
 
-        <!-- Control de Asistencia -->
         <div class="card" id="attendanceCard" style="display: none;">
             <h2>✅ Registrar Asistencia</h2>
             <div class="date-display">
@@ -291,11 +375,13 @@
             </div>
             <div id="attendanceTable"></div>
             <button class="btn btn-success" onclick="saveAttendance()" style="margin-top: 20px;">
-                💾 Guardar Asistencia
+                 Guardar Asistencia
             </button>
+            <span class="save-indicator" id="saveIndicator" style="display: none;">
+                ️ Tienes cambios sin guardar
+            </span>
         </div>
 
-        <!-- Resumen Semanal -->
         <div class="card">
             <h2>📊 Resumen Semanal</h2>
             <div class="week-selector" id="weekSelector"></div>
@@ -308,7 +394,6 @@
             </div>
         </div>
 
-        <!-- Historial -->
         <div class="card">
             <h2>📝 Historial de Asistencia</h2>
             <div id="historyTable"></div>
@@ -319,23 +404,20 @@
     </div>
 
     <script>
-        // Variables globales
         let students = JSON.parse(localStorage.getItem('students')) || [];
         let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
         let selectedWeek = 'current';
-        let tempAttendance = {}; // Para guardar asistencia temporal antes de guardar
+        let tempAttendance = {};
+        let hasUnsavedChanges = false;
 
-        // Establecer fecha actual por defecto
         document.getElementById('fecha').valueAsDate = new Date();
         updateCurrentDate();
 
-        // Manejar cambio de fecha
         document.getElementById('fecha').addEventListener('change', function() {
             updateCurrentDate();
             renderAttendanceTable();
         });
 
-        // Actualizar fecha mostrada
         function updateCurrentDate() {
             const fechaInput = document.getElementById('fecha').value;
             const date = new Date(fechaInput + 'T00:00:00');
@@ -343,7 +425,6 @@
             document.getElementById('currentDate').textContent = date.toLocaleDateString('es', options);
         }
 
-        // Cargar CSV
         document.getElementById('csvFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -356,7 +437,6 @@
             reader.readAsText(file);
         });
 
-        // Parsear CSV
         function parseCSV(text) {
             const lines = text.split('\n').filter(line => line.trim() !== '');
             if (lines.length === 0) {
@@ -364,10 +444,8 @@
                 return;
             }
 
-            // Detectar encabezados
             const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
             
-            // Buscar columna de nombres (intentar diferentes nombres comunes)
             let nameColumnIndex = -1;
             const nameKeywords = ['nombre', 'name', 'alumno', 'student', 'nombre completo', 'full name'];
             
@@ -378,34 +456,31 @@
                 }
             }
 
-            // Si no encuentra, usar la primera columna
             if (nameColumnIndex === -1) {
                 nameColumnIndex = 0;
             }
 
-            // Extraer nombres
             students = [];
             for (let i = 1; i < lines.length; i++) {
                 const columns = lines[i].split(',');
                 if (columns[nameColumnIndex]) {
-                    const name = columns[nameColumnIndex].trim();
+                    let name = columns[nameColumnIndex].trim();
+                    // Limpiar números al inicio del nombre (ej: "1 Oswaldo" -> "Oswaldo")
+                    name = name.replace(/^\d+\s*/, '');
                     if (name && name !== '') {
                         students.push(name);
                     }
                 }
             }
 
-            // Guardar en localStorage
             localStorage.setItem('students', JSON.stringify(students));
 
-            // Mostrar información
             document.getElementById('studentInfo').innerHTML = `
                 <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-top: 15px;">
                     ✅ <strong>${students.length} alumnos</strong> cargados correctamente
                 </div>
             `;
 
-            // Mostrar sección de asistencia
             document.getElementById('attendanceCard').style.display = 'block';
             document.getElementById('studentCount').textContent = `${students.length} alumnos`;
             
@@ -413,7 +488,7 @@
             renderAll();
         }
 
-        // Renderizar tabla de asistencia
+        // ✅ CORREGIDO: Ahora NO resetea tempAttendance al renderizar
         function renderAttendanceTable() {
             const attendanceTable = document.getElementById('attendanceTable');
             const fecha = document.getElementById('fecha').value;
@@ -423,19 +498,21 @@
                 return;
             }
 
-            // Cargar asistencia existente para esta fecha
-            tempAttendance = {};
-            const existingRecords = attendanceData.filter(r => r.fecha === fecha);
-            existingRecords.forEach(record => {
-                tempAttendance[record.nombre] = record.estado;
-            });
+            // Solo cargar registros existentes si tempAttendance está vacío para esta fecha
+            if (Object.keys(tempAttendance).length === 0 || !tempAttendance._loadedFor || tempAttendance._loadedFor !== fecha) {
+                tempAttendance = { _loadedFor: fecha };
+                const existingRecords = attendanceData.filter(r => r.fecha === fecha);
+                existingRecords.forEach(record => {
+                    tempAttendance[record.nombre] = record.estado;
+                });
+            }
 
             let html = `
                 <table>
                     <thead>
                         <tr>
-                            <th>N°</th>
-                            <th>Nombre del Alumno</th>
+                            <th style="width: 50px;">N°</th>
+                            <th style="width: 35%;">Nombre del Alumno</th>
                             <th>Estado</th>
                         </tr>
                     </thead>
@@ -446,21 +523,24 @@
                 const currentState = tempAttendance[student] || '';
                 html += `
                     <tr>
-                        <td>${index + 1}</td>
-                        <td>${student}</td>
+                        <td><strong>${index + 1}</strong></td>
+                        <td><strong>${student}</strong></td>
                         <td>
                             <div class="status-buttons">
                                 <button class="status-btn presente ${currentState === 'presente' ? 'active' : ''}" 
-                                        onclick="setStatus('${student}', 'presente')">
-                                    ✅ Presente
+                                        onclick="setStatus('${student.replace(/'/g, "\\'")}', 'presente')">
+                                    <span class="icon">✅</span>
+                                    <span class="status-label">Presente</span>
                                 </button>
                                 <button class="status-btn ausente ${currentState === 'ausente' ? 'active' : ''}" 
-                                        onclick="setStatus('${student}', 'ausente')">
-                                    ❌ Ausente
+                                        onclick="setStatus('${student.replace(/'/g, "\\'")}', 'ausente')">
+                                    <span class="icon">❌</span>
+                                    <span class="status-label">Ausente</span>
                                 </button>
                                 <button class="status-btn tardanza ${currentState === 'tardanza' ? 'active' : ''}" 
-                                        onclick="setStatus('${student}', 'tardanza')">
-                                    ⏰ Tardanza
+                                        onclick="setStatus('${student.replace(/'/g, "\\'")}', 'tardanza')">
+                                    <span class="icon">⏰</span>
+                                    <span class="status-label">Tardanza</span>
                                 </button>
                             </div>
                         </td>
@@ -472,17 +552,25 @@
             attendanceTable.innerHTML = html;
         }
 
-        // Establecer estado de un alumno
+        // ✅ CORREGIDO: Solo actualiza el botón visualmente, NO re-renderiza toda la tabla
         function setStatus(student, status) {
             tempAttendance[student] = status;
-            renderAttendanceTable();
+            hasUnsavedChanges = true;
+            document.getElementById('saveIndicator').style.display = 'inline-block';
+            
+            // Actualizar solo los botones de este alumno (sin re-renderizar todo)
+            const buttons = event.target.closest('.status-buttons').querySelectorAll('.status-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.status-btn').classList.add('active');
         }
 
-        // Guardar asistencia
         function saveAttendance() {
             const fecha = document.getElementById('fecha').value;
             
-            if (Object.keys(tempAttendance).length === 0) {
+            // Filtrar solo las entradas válidas (excluir _loadedFor)
+            const validEntries = Object.keys(tempAttendance).filter(k => k !== '_loadedFor');
+            
+            if (validEntries.length === 0) {
                 alert('Por favor, marca al menos un alumno');
                 return;
             }
@@ -491,7 +579,7 @@
             attendanceData = attendanceData.filter(r => r.fecha !== fecha);
 
             // Agregar nuevos registros
-            Object.keys(tempAttendance).forEach(student => {
+            validEntries.forEach(student => {
                 attendanceData.push({
                     nombre: student,
                     fecha: fecha,
@@ -499,14 +587,15 @@
                 });
             });
 
-            // Guardar en localStorage
             localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
-
+            
+            hasUnsavedChanges = false;
+            document.getElementById('saveIndicator').style.display = 'none';
+            
             alert('✅ Asistencia guardada correctamente');
             renderAll();
         }
 
-        // Función para obtener el rango de fechas de una semana
         function getWeekRange(weekOffset = 0) {
             const now = new Date();
             const currentDay = now.getDay();
@@ -523,7 +612,6 @@
             };
         }
 
-        // Renderizar selector de semanas
         function renderWeekSelector() {
             const selector = document.getElementById('weekSelector');
             selector.innerHTML = '';
@@ -543,7 +631,6 @@
             }
         }
 
-        // Renderizar estadísticas semanales
         function renderWeeklyStats() {
             const week = getWeekRange(selectedWeek);
             const weekData = attendanceData.filter(record => {
@@ -581,7 +668,6 @@
             progressFill.textContent = porcentaje + '%';
         }
 
-        // Renderizar tabla de historial
         function renderHistory() {
             const historyTable = document.getElementById('historyTable');
             
@@ -626,7 +712,6 @@
             historyTable.innerHTML = html;
         }
 
-        // Eliminar registro
         function deleteRecord(index) {
             if (confirm('¿Estás seguro de eliminar este registro?')) {
                 const sortedData = [...attendanceData].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -642,7 +727,6 @@
             }
         }
 
-        // Borrar todo el historial
         function clearAllData() {
             if (confirm('¿Estás seguro de borrar TODO el historial? Esta acción no se puede deshacer.')) {
                 attendanceData = [];
@@ -651,14 +735,12 @@
             }
         }
 
-        // Renderizar todo
         function renderAll() {
             renderWeekSelector();
             renderWeeklyStats();
             renderHistory();
         }
 
-        // Inicializar
         if (students.length > 0) {
             document.getElementById('studentInfo').innerHTML = `
                 <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-top: 15px;">
