@@ -366,4 +366,417 @@
         
         <div class="card">
             <h2>👥 Lista de Alumnos</h2>
-            <div id="student
+            <div id="studentInfo">
+                <div class="loading">Cargando lista de alumnos desde students.csv</div>
+            </div>
+            <div class="csv-format" style="margin-top: 15px;">
+                <strong>💡 Tip:</strong> Para actualizar la lista, edita el archivo <code>students.csv</code> en tu repositorio de GitHub y recarga la página.
+            </div>
+        </div>
+
+        <div class="card" id="attendanceCard" style="display: none;">
+            <h2>✅ Registrar Asistencia</h2>
+            <div class="date-display">
+                <div>
+                    <label for="fecha" style="margin-bottom: 5px;">Fecha:</label>
+                    <input type="date" id="fecha" style="width: auto; display: inline-block;">
+                </div>
+                <div class="current-date" id="currentDate"></div>
+                <div class="student-count" id="studentCount"></div>
+            </div>
+            <div id="attendanceTable"></div>
+            <button class="btn btn-success" onclick="saveAttendance()" style="margin-top: 20px;">
+                 Guardar Asistencia
+            </button>
+            <span class="save-indicator" id="saveIndicator" style="display: none;">
+                ⚠️ Tienes cambios sin guardar
+            </span>
+        </div>
+
+        <div class="card">
+            <h2>📊 Resumen Semanal</h2>
+            <div class="week-selector" id="weekSelector"></div>
+            <div class="stats-grid" id="statsGrid"></div>
+            <div style="margin-top: 30px;">
+                <label style="margin-bottom: 10px;">Porcentaje de Asistencia General:</label>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📝 Historial de Asistencia</h2>
+            <div id="historyTable"></div>
+            <button class="btn btn-danger" onclick="clearAllData()" style="margin-top: 20px;">
+                🗑️ Borrar Todo el Historial
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let students = [];
+        let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+        let selectedWeek = 'current';
+        let tempAttendance = {};
+        let hasUnsavedChanges = false;
+
+        document.getElementById('fecha').valueAsDate = new Date();
+        updateCurrentDate();
+
+        document.getElementById('fecha').addEventListener('change', function() {
+            updateCurrentDate();
+            renderAttendanceTable();
+        });
+
+        function updateCurrentDate() {
+            const fechaInput = document.getElementById('fecha').value;
+            const date = new Date(fechaInput + 'T00:00:00');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = date.toLocaleDateString('es', options);
+        }
+
+        // ✅ CARGAR AUTOMÁTICAMENTE EL CSV AL INICIAR
+        async function loadStudentsFromCSV() {
+            try {
+                const response = await fetch('./students.csv');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                parseCSV(text);
+                
+            } catch (error) {
+                console.error('Error al cargar students.csv:', error);
+                document.getElementById('studentInfo').innerHTML = `
+                    <div style="background: #f8d7da; padding: 15px; border-radius: 8px; color: #721c24;">
+                        ❌ <strong>Error al cargar students.csv</strong><br>
+                        <small>${error.message}</small><br><br>
+                        <strong>Soluciones:</strong><br>
+                        1. Verifica que el archivo <code>students.csv</code> existe en tu repositorio<br>
+                        2. Asegúrate de que GitHub Pages esté activado<br>
+                        3. Recarga la página (Ctrl+F5)
+                    </div>
+                `;
+            }
+        }
+
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            if (lines.length === 0) {
+                alert('El archivo CSV está vacío');
+                return;
+            }
+
+            // Detectar separador
+            const firstLine = lines[0];
+            let separator = ',';
+            if (firstLine.includes(';')) separator = ';';
+            else if (firstLine.includes('\t')) separator = '\t';
+            
+            const headers = lines[0].split(separator).map(h => h.trim().toLowerCase());
+            
+            // Buscar columna de nombres
+            let nameColumnIndex = -1;
+            const nameKeywords = ['nombre', 'name', 'alumno', 'student', 'nombre completo', 'full name'];
+            
+            for (let i = 0; i < headers.length; i++) {
+                if (nameKeywords.some(keyword => headers[i].includes(keyword))) {
+                    nameColumnIndex = i;
+                    break;
+                }
+            }
+
+            // Si no encuentra, usar la segunda columna si existe
+            if (nameColumnIndex === -1 && headers.length > 1) {
+                nameColumnIndex = 1;
+            } else if (nameColumnIndex === -1) {
+                nameColumnIndex = 0;
+            }
+
+            // Extraer nombres
+            students = [];
+            for (let i = 1; i < lines.length; i++) {
+                const columns = lines[i].split(separator);
+                if (columns[nameColumnIndex]) {
+                    let name = columns[nameColumnIndex].trim();
+                    // Limpiar números al inicio
+                    name = name.replace(/^\d+\s*/, '');
+                    if (name && name !== '') {
+                        students.push(name);
+                    }
+                }
+            }
+
+            document.getElementById('studentInfo').innerHTML = `
+                <div style="background: #d4edda; padding: 15px; border-radius: 8px;">
+                    ✅ <strong>${students.length} alumnos</strong> cargados desde students.csv<br>
+                    <small style="color: #666; margin-top: 5px; display: block;">
+                        ${students.join(' • ')}
+                    </small>
+                </div>
+            `;
+
+            document.getElementById('attendanceCard').style.display = 'block';
+            document.getElementById('studentCount').textContent = `${students.length} alumnos`;
+            
+            renderAttendanceTable();
+            renderAll();
+        }
+
+        function renderAttendanceTable() {
+            const attendanceTable = document.getElementById('attendanceTable');
+            const fecha = document.getElementById('fecha').value;
+
+            if (students.length === 0) {
+                attendanceTable.innerHTML = '<div class="empty-state">No hay alumnos cargados.</div>';
+                return;
+            }
+
+            // Solo cargar registros existentes si tempAttendance está vacío para esta fecha
+            if (Object.keys(tempAttendance).length === 0 || !tempAttendance._loadedFor || tempAttendance._loadedFor !== fecha) {
+                tempAttendance = { _loadedFor: fecha };
+                const existingRecords = attendanceData.filter(r => r.fecha === fecha);
+                existingRecords.forEach(record => {
+                    tempAttendance[record.nombre] = record.estado;
+                });
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">N°</th>
+                            <th style="width: 35%;">Nombre del Alumno</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            students.forEach((student, index) => {
+                const currentState = tempAttendance[student] || '';
+                html += `
+                    <tr>
+                        <td><strong>${index + 1}</strong></td>
+                        <td><strong>${student}</strong></td>
+                        <td>
+                            <div class="status-buttons">
+                                <button class="status-btn presente ${currentState === 'presente' ? 'active' : ''}" 
+                                        onclick="setStatus('${student.replace(/'/g, "\\'")}', 'presente')">
+                                    <span class="icon">✅</span>
+                                    <span class="status-label">Presente</span>
+                                </button>
+                                <button class="status-btn ausente ${currentState === 'ausente' ? 'active' : ''}" 
+                                        onclick="setStatus('${student.replace(/'/g, "\\'")}', 'ausente')">
+                                    <span class="icon"></span>
+                                    <span class="status-label">Ausente</span>
+                                </button>
+                                <button class="status-btn tardanza ${currentState === 'tardanza' ? 'active' : ''}" 
+                                        onclick="setStatus('${student.replace(/'/g, "\\'")}', 'tardanza')">
+                                    <span class="icon">⏰</span>
+                                    <span class="status-label">Tardanza</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            attendanceTable.innerHTML = html;
+        }
+
+        function setStatus(student, status) {
+            tempAttendance[student] = status;
+            hasUnsavedChanges = true;
+            document.getElementById('saveIndicator').style.display = 'inline-block';
+            
+            // Actualizar solo los botones de este alumno
+            const buttons = event.target.closest('.status-buttons').querySelectorAll('.status-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.status-btn').classList.add('active');
+        }
+
+        function saveAttendance() {
+            const fecha = document.getElementById('fecha').value;
+            
+            const validEntries = Object.keys(tempAttendance).filter(k => k !== '_loadedFor');
+            
+            if (validEntries.length === 0) {
+                alert('Por favor, marca al menos un alumno');
+                return;
+            }
+
+            attendanceData = attendanceData.filter(r => r.fecha !== fecha);
+
+            validEntries.forEach(student => {
+                attendanceData.push({
+                    nombre: student,
+                    fecha: fecha,
+                    estado: tempAttendance[student]
+                });
+            });
+
+            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+            
+            hasUnsavedChanges = false;
+            document.getElementById('saveIndicator').style.display = 'none';
+            
+            alert('✅ Asistencia guardada correctamente');
+            renderAll();
+        }
+
+        function getWeekRange(weekOffset = 0) {
+            const now = new Date();
+            const currentDay = now.getDay();
+            const diff = currentDay === 0 ? 6 : currentDay - 1;
+            const monday = new Date(now);
+            monday.setDate(now.getDate() - diff + (weekOffset * 7));
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            
+            return {
+                start: monday.toISOString().split('T')[0],
+                end: sunday.toISOString().split('T')[0],
+                label: `${monday.toLocaleDateString('es')} - ${sunday.toLocaleDateString('es')}`
+            };
+        }
+
+        function renderWeekSelector() {
+            const selector = document.getElementById('weekSelector');
+            selector.innerHTML = '';
+            
+            for (let i = 0; i >= -3; i--) {
+                const week = getWeekRange(i);
+                const btn = document.createElement('button');
+                btn.className = 'week-btn' + (i === 0 ? ' active' : '');
+                btn.textContent = i === 0 ? 'Esta Semana' : `Semana ${i === -1 ? 'Pasada' : `-${Math.abs(i)}`}`;
+                btn.onclick = () => {
+                    selectedWeek = i;
+                    document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderWeeklyStats();
+                };
+                selector.appendChild(btn);
+            }
+        }
+
+        function renderWeeklyStats() {
+            const week = getWeekRange(selectedWeek);
+            const weekData = attendanceData.filter(record => {
+                return record.fecha >= week.start && record.fecha <= week.end;
+            });
+
+            const total = weekData.length;
+            const presentes = weekData.filter(r => r.estado === 'presente').length;
+            const ausentes = weekData.filter(r => r.estado === 'ausente').length;
+            const tardanzas = weekData.filter(r => r.estado === 'tardanza').length;
+            const porcentaje = total > 0 ? Math.round(((presentes + tardanzas) / total) * 100) : 0;
+
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${total}</div>
+                    <div class="stat-label">Total Registros</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);">
+                    <div class="stat-number">${presentes}</div>
+                    <div class="stat-label">Presentes</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #e17055 0%, #fdcb6e 100%);">
+                    <div class="stat-number">${tardanzas}</div>
+                    <div class="stat-label">Tardanzas</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #d63031 0%, #e84393 100%);">
+                    <div class="stat-number">${ausentes}</div>
+                    <div class="stat-label">Ausentes</div>
+                </div>
+            `;
+
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = porcentaje + '%';
+            progressFill.textContent = porcentaje + '%';
+        }
+
+        function renderHistory() {
+            const historyTable = document.getElementById('historyTable');
+            
+            if (attendanceData.length === 0) {
+                historyTable.innerHTML = '<div class="empty-state">No hay registros aún. ¡Comienza registrando asistencia!</div>';
+                return;
+            }
+
+            const sortedData = [...attendanceData].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            sortedData.forEach((record, index) => {
+                const statusClass = `status-${record.estado}`;
+                const statusText = record.estado.charAt(0).toUpperCase() + record.estado.slice(1);
+                html += `
+                    <tr>
+                        <td>${record.nombre}</td>
+                        <td>${new Date(record.fecha + 'T00:00:00').toLocaleDateString('es')}</td>
+                        <td><span class="status ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="btn btn-danger btn-small" onclick="deleteRecord(${index})">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            historyTable.innerHTML = html;
+        }
+
+        function deleteRecord(index) {
+            if (confirm('¿Estás seguro de eliminar este registro?')) {
+                const sortedData = [...attendanceData].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                const recordToDelete = sortedData[index];
+                const originalIndex = attendanceData.findIndex(r => 
+                    r.nombre === recordToDelete.nombre && 
+                    r.fecha === recordToDelete.fecha && 
+                    r.estado === recordToDelete.estado
+                );
+                attendanceData.splice(originalIndex, 1);
+                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+                renderAll();
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('¿Estás seguro de borrar TODO el historial? Esta acción no se puede deshacer.')) {
+                attendanceData = [];
+                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+                renderAll();
+            }
+        }
+
+        function renderAll() {
+            renderWeekSelector();
+            renderWeeklyStats();
+            renderHistory();
+        }
+
+        // ✅ CARGAR AUTOMÁTICAMENTE AL INICIAR
+        loadStudentsFromCSV();
+        renderAll();
+    </script>
+</body>
+</html>
