@@ -264,7 +264,7 @@
         </div>
 
         <div class="card">
-            <h2> Resumen Semanal</h2>
+            <h2>📊 Resumen Semanal</h2>
             <div class="week-selector" id="weekSelector"></div>
             <div class="week-range" id="weekRange"></div>
             <div id="weeklySummaryTable"></div>
@@ -298,6 +298,28 @@
         let tempAttendance = {};
         let isSaving = false;
 
+        // ✅ FUNCIÓN CLAVE: Normaliza cualquier formato de fecha que envíe Google Sheets
+        function normalizeDate(dateValue) {
+            if (!dateValue) return '';
+            if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue.trim())) {
+                return dateValue.trim();
+            }
+            if (dateValue instanceof Date) {
+                return dateValue.toISOString().split('T')[0];
+            }
+            if (typeof dateValue === 'number') {
+                const date = new Date(Math.round((dateValue - 25569) * 86400 * 1000));
+                return date.toISOString().split('T')[0];
+            }
+            if (typeof dateValue === 'string') {
+                const date = new Date(dateValue);
+                if (!isNaN(date.getTime())) {
+                    return date.toISOString().split('T')[0];
+                }
+            }
+            return String(dateValue);
+        }
+
         document.getElementById('fecha').valueAsDate = new Date();
         updateCurrentDate();
 
@@ -313,7 +335,6 @@
             document.getElementById('currentDate').textContent = date.toLocaleDateString('es', options);
         }
 
-        // Cargar alumnos desde CSV
         fetch('https://raw.githubusercontent.com/choquem/mi-primera-pagina/main/students.csv')
             .then(response => {
                 if (!response.ok) throw new Error('Error al cargar CSV');
@@ -345,6 +366,7 @@
                 `;
             });
 
+        // ✅ CARGA DATOS Y NORMALIZA LAS FECHAS
         function loadAttendanceFromSheet() {
             showSyncStatus('Cargando datos...', 'syncing');
             
@@ -352,7 +374,13 @@
                 .then(response => response.json())
                 .then(result => {
                     if (result.result === 'success') {
-                        attendanceData = result.data || [];
+                        attendanceData = (result.data || []).map(record => ({
+                            fecha: normalizeDate(record.fecha),
+                            nombre: String(record.nombre).trim(),
+                            estado: String(record.estado).trim()
+                        }));
+                        
+                        console.log('Datos cargados y normalizados:', attendanceData);
                         showSyncStatus('✅ Conectado a Google Sheets', 'connected');
                         renderAttendanceTable();
                         renderWeekSelector();
@@ -399,7 +427,7 @@
                             </button>
                             <button class="status-btn tardanza ${currentState === 'tardanza' ? 'active' : ''}" 
                                     onclick="setStatus('${student}', 'tardanza')">
-                                <span class="icon"></span>
+                                <span class="icon">⏰</span>
                                 <span class="label">Tardanza</span>
                             </button>
                         </div>
@@ -421,92 +449,83 @@
         }
 
         async function saveAttendanceToSheet() {
-    if (isSaving) {
-        alert('⏳ Ya se está guardando, espera un momento...');
-        return;
-    }
+            if (isSaving) {
+                alert('⏳ Ya se está guardando, espera un momento...');
+                return;
+            }
 
-    const fechaInput = document.getElementById('fecha').value;
-    
-    // ✅ Validar que la fecha sea válida
-    if (!fechaInput) {
-        alert('⚠️ Por favor selecciona una fecha');
-        return;
-    }
-    
-    // ✅ Formatear fecha correctamente (YYYY-MM-DD)
-    const fecha = new Date(fechaInput + 'T00:00:00').toISOString().split('T')[0];
-    console.log('Fecha a guardar:', fecha);
-    
-    const validEntries = Object.keys(tempAttendance).filter(k => k !== '_loadedFor');
-    
-    if (validEntries.length === 0) {
-        alert('Por favor, marca al menos un alumno');
-        return;
-    }
-
-    isSaving = true;
-    const btnSave = document.getElementById('btnSave');
-    btnSave.disabled = true;
-    btnSave.textContent = '⏳ Guardando...';
-    showSyncStatus('Guardando...', 'syncing');
-
-    // Eliminar registros anteriores de esta fecha (localmente)
-    attendanceData = attendanceData.filter(r => r.fecha !== fecha);
-    
-    const newRecords = [];
-    validEntries.forEach(student => {
-        const record = {
-            nombre: student,
-            fecha: fecha,
-            estado: tempAttendance[student]
-        };
-        attendanceData.push(record);
-        newRecords.push(record);
-    });
-
-    try {
-        // Guardar uno por uno con delay para evitar duplicados
-        for (let i = 0; i < newRecords.length; i++) {
-            console.log('Enviando registro:', newRecords[i]);
+            const fechaInput = document.getElementById('fecha').value;
+            if (!fechaInput) {
+                alert('⚠️ Por favor selecciona una fecha');
+                return;
+            }
             
-            await fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newRecords[i])
+            const fecha = new Date(fechaInput + 'T00:00:00').toISOString().split('T')[0];
+            console.log('Fecha a guardar:', fecha);
+            
+            const validEntries = Object.keys(tempAttendance).filter(k => k !== '_loadedFor');
+            
+            if (validEntries.length === 0) {
+                alert('Por favor, marca al menos un alumno');
+                return;
+            }
+
+            isSaving = true;
+            const btnSave = document.getElementById('btnSave');
+            btnSave.disabled = true;
+            btnSave.textContent = '⏳ Guardando...';
+            showSyncStatus('Guardando...', 'syncing');
+
+            attendanceData = attendanceData.filter(r => r.fecha !== fecha);
+            
+            const newRecords = [];
+            validEntries.forEach(student => {
+                const record = {
+                    nombre: student,
+                    fecha: fecha,
+                    estado: tempAttendance[student]
+                };
+                attendanceData.push(record);
+                newRecords.push(record);
             });
-            
-            // Esperar 300ms entre cada registro
-            await new Promise(resolve => setTimeout(resolve, 300));
+
+            try {
+                for (let i = 0; i < newRecords.length; i++) {
+                    console.log('Enviando registro:', newRecords[i]);
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newRecords[i])
+                    });
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+                
+                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+                showSyncStatus('✅ Guardado', 'connected');
+                document.getElementById('saveMessage').innerHTML = `
+                    <div class="success">✅ ${newRecords.length} registros guardados en Google Sheets</div>
+                `;
+                setTimeout(() => {
+                    document.getElementById('saveMessage').innerHTML = '';
+                }, 3000);
+                
+                setTimeout(() => {
+                    loadAttendanceFromSheet();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showSyncStatus('❌ Error', 'error');
+                document.getElementById('saveMessage').innerHTML = `
+                    <div class="error">❌ Error al guardar: ${error.message}</div>
+                `;
+            } finally {
+                isSaving = false;
+                btnSave.disabled = false;
+                btnSave.textContent = '💾 Guardar en Google Sheets';
+            }
         }
-        
-        localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
-        showSyncStatus('✅ Guardado', 'connected');
-        document.getElementById('saveMessage').innerHTML = `
-            <div class="success">✅ ${newRecords.length} registros guardados en Google Sheets</div>
-        `;
-        setTimeout(() => {
-            document.getElementById('saveMessage').innerHTML = '';
-        }, 3000);
-        
-        // Recargar datos desde Sheets después de 1 segundo
-        setTimeout(() => {
-            loadAttendanceFromSheet();
-        }, 1000);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        showSyncStatus('❌ Error', 'error');
-        document.getElementById('saveMessage').innerHTML = `
-            <div class="error"> Error al guardar: ${error.message}</div>
-        `;
-    } finally {
-        isSaving = false;
-        btnSave.disabled = false;
-        btnSave.textContent = '💾 Guardar en Google Sheets';
-    }
-}
 
         function showSyncStatus(message, type) {
             const statusEl = document.getElementById('syncStatus');
@@ -633,26 +652,42 @@
             progressFill.textContent = porcentaje + '%';
         }
 
+        // ✅ HISTORIAL CON FORMATO DE FECHA SEGURO
         function renderHistory() {
             const historyTable = document.getElementById('historyTable');
             if (attendanceData.length === 0) {
                 historyTable.innerHTML = '<div class="loading">No hay registros aún</div>';
                 return;
             }
-            const sortedData = [...attendanceData].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            
+            const sortedData = [...attendanceData].sort((a, b) => {
+                const dateA = new Date(a.fecha + 'T00:00:00');
+                const dateB = new Date(b.fecha + 'T00:00:00');
+                return dateB - dateA;
+            });
+            
             let html = `<table>
                 <thead><tr><th>Alumno</th><th>Fecha</th><th>Estado</th></tr></thead>
                 <tbody>`;
+            
             sortedData.forEach(record => {
                 const color = record.estado === 'presente' ? '#d4edda' : record.estado === 'ausente' ? '#f8d7da' : '#fff3cd';
                 const textColor = record.estado === 'presente' ? '#155724' : record.estado === 'ausente' ? '#721c24' : '#856404';
                 const icon = record.estado === 'presente' ? '✅' : record.estado === 'ausente' ? '❌' : '⏰';
+                
+                // Formatear fecha de manera segura
+                const dateObj = new Date(record.fecha + 'T00:00:00');
+                const fechaMostrar = !isNaN(dateObj.getTime()) 
+                    ? dateObj.toLocaleDateString('es', { year: 'numeric', month: 'long', day: 'numeric' }) 
+                    : record.fecha;
+                
                 html += `<tr>
                     <td>${record.nombre}</td>
-                    <td>${new Date(record.fecha + 'T00:00:00').toLocaleDateString('es')}</td>
+                    <td>${fechaMostrar}</td>
                     <td><span style="background: ${color}; color: ${textColor}; padding: 5px 12px; border-radius: 12px; font-weight: 600;">${icon} ${record.estado}</span></td>
                 </tr>`;
             });
+            
             html += '</tbody></table>';
             historyTable.innerHTML = html;
         }
