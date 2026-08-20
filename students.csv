@@ -1,34 +1,34 @@
-id,Nombre
-1,Acuña Serrath Bairon Gael
-2,Alizar Hurtado Liz Naomi
-3,Arias Galvis John
-4,Arias Galvis Liz Irene
-5,Arias Gonzales Yuleydi
-6,Bautista Ledezma Jhimy Nadir
-7,Bautista Ledezma Neil Diego
-8,Cachari Falón Gabriel Heriberto
-9,Cachari Falon Limhi
-10,Calderon Lopez Dulce Maria
-11,Chavez Rojas Marbella Estefani
-12,Chavez Velasquez Dahjanne
-13,Choque Michel Jennifer Tais
-14,Copa Pardo Alan Robby
-15,Coronel Balderrama Korina
-16,Durán Arias Valenthina
-17,Fernandez Lobos Mario Santiago
-18,Herbas Villanueva Aracely Midory
-19,Masco Zabala Lucas Jhasiel
-20,Mercado Cachari Lilia
-21,Negro Padilla Brenda
-22,Padilla Takaná Blass Mahonrry
-23,Panozo Gonsales Cristian
-24,Porcel Falom Aaron Smith
-25,Quispe Rojas Mariana
-26,Saigua Pantoja Briyith
-27,Saigua Pantoja Bryan
-28,Sanchez Bejarano Alvin Sebastian
-29,Sandoval Jimenez Seth Elohah
-30,Suarez Torrez Taylor
-31,Ulloa Berrios Franco
-32,Ulloa Berrios Katherine
-33,Yabeta Arteaga Oswaldo
+id,Nombre,maestro
+1,Acuña Serrath Bairon Gael,Carla Suath Trujillo
+2,Alizar Hurtado Liz Naomi,Maria Belen Sanchez
+3,Arias Galvis John,Oscar Sachez
+4,Arias Galvis Liz Irene,Oscar Sanchez
+5,Arias Gonzales Yuleydi,Deysi Zurita
+6,Bautista Ledezma Jhimy Nadir,Carla Suath Trujillo
+7,Bautista Ledezma Neil Diego,Carla Suath Trujillo
+8,Cachari Falón Gabriel Heriberto,Deysi Zurita
+9,Cachari Falon Limhi,Deysi Zurita
+10,Calderon Lopez Dulce Maria,Maria Belen Sanchez
+11,Chavez Rojas Marbella Estefani,Maria Belen Sanchez
+12,Chavez Velasquez Dahjanne,Maria Belen Sanchez
+13,Choque Michel Jennifer Tais,Carla Suath Trujillo
+14,Copa Pardo Alan Robby,Maria Belen Sanchez
+15,Coronel Balderrama Korina,Maria Belen Sanchez
+16,Durán Arias Valenthina,Carla Suath Trujillo
+17,Fernandez Lobos Mario Santiago,Oscar Sanchez
+18,Herbas Villanueva Aracely Midory,Deysi Zurita
+19,Masco Zabala Lucas Jhasiel,Oscar Sanchez
+20,Mercado Cachari Lilia,Deysi Zurita
+21,Negro Padilla Brenda,Maria Belen Sanchez
+22,Padilla Takaná Blass Mahonrry,Carla Suath Trujillo
+23,Panozo Gonsales Cristian,Maria Belen Sanchez
+24,Porcel Falom Aaron Smith,Carla Suath Trujillo
+25,Quispe Rojas Mariana,Maria Belen Sanchez
+26,Saigua Pantoja Briyith,Maria Belen Sanchez
+27,Saigua Pantoja Bryan,Maria Belen Sanchez
+28,Sanchez Bejarano Alvin Sebastian,Oscar Sanchez
+29,Sandoval Jimenez Seth Elohah,Carla Suath Trujillo
+30,Suarez Torrez Taylor,Oscar Sanchez
+31,Ulloa Berrios Franco,Maria Belen Sanchez
+32,Ulloa Berrios Katherine,Maria Belen Sanchez
+33,Yabeta Arteaga Oswaldo,Carla Suath Trujillo
