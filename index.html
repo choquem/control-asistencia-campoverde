@@ -43,10 +43,9 @@
         }
         .btn:hover { background: #00a383; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,184,148,0.3); }
         .btn:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
-        .btn-danger { background: #e74c3c; }
-        .btn-danger:hover { background: #c0392b; }
-        .btn-success { background: #00b894; }
-        .btn-success:hover { background: #00a383; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #5a6268; }
+        .btn-secondary.active { background: #667eea; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: #667eea; color: white; padding: 12px 15px; text-align: left; font-size: 0.95rem; }
@@ -102,6 +101,36 @@
             content: '✓'; position: absolute; top: -6px; right: -6px; background: white; color: #fdcb6e;
             width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* FILTROS DE MAESTRO */
+        .teacher-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .teacher-filters label {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.95rem;
+        }
+        .filter-btn {
+            padding: 8px 18px;
+            background: #f0f0f0;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .filter-btn:hover { background: #e0e0e0; }
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
         }
 
         .week-selector { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
@@ -177,6 +206,8 @@
             .summary-table { font-size: 0.8rem; }
             .summary-table td { font-size: 1rem; padding: 6px 4px; }
             .summary-table td:first-child { font-size: 0.8rem; min-width: 120px; }
+            .teacher-filters { flex-direction: column; align-items: stretch; }
+            .filter-btn { width: 100%; }
         }
     </style>
 </head>
@@ -189,6 +220,15 @@
             <div id="loadingStudents" class="loading">Cargando lista de alumnos...</div>
             
             <div id="registrationPanel" style="display: none;">
+                <!-- FILTROS POR MAESTRO -->
+                <div class="teacher-filters">
+                    <label>👨‍🏫 Filtrar por:</label>
+                    <button class="filter-btn active" onclick="filterByTeacher('todos')">📚 Todos</button>
+                    <button class="filter-btn" onclick="filterByTeacher('Matemáticas')"> Matemáticas</button>
+                    <button class="filter-btn" onclick="filterByTeacher('Comunicación')">📖 Comunicación</button>
+                    <button class="filter-btn" onclick="filterByTeacher('Ciencias')">🔬 Ciencias</button>
+                </div>
+                
                 <div class="date-display">
                     <div>
                         <label for="fecha" style="margin-bottom: 5px; display: block; font-size: 0.9rem; color: #666;">Fecha:</label>
@@ -198,7 +238,7 @@
                     <div class="student-count" id="studentCount"></div>
                 </div>
                 <div id="attendanceTable"></div>
-                <button class="btn btn-success" id="btnSave" onclick="saveAttendanceToSheet()">💾 Guardar en Google Sheets</button>
+                <button class="btn btn-success" id="btnSave" onclick="saveAttendanceToSheet()"> Guardar en Google Sheets</button>
                 <span id="syncStatus" class="sync-status connected" style="display: none;"></span>
                 <div id="saveMessage" style="margin-top: 10px;"></div>
             </div>
@@ -221,7 +261,7 @@
         </div>
 
         <div class="card">
-            <h2>📝 Historial de Asistencia</h2>
+            <h2> Historial de Asistencia</h2>
             <div id="historyTable"></div>
         </div>
     </div>
@@ -229,11 +269,12 @@
     <script>
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJsxDxyntHAi7U_m-YrEx4JTM6dfAPK04EmbITwXmLEQFM5KxZCY5-8EfhhNDJoiF7AA/exec';
         
-        let students = [];
+        let students = []; // Array de objetos: {nombre, maestro}
         let attendanceData = [];
         let selectedWeek = 0;
         let tempAttendance = {};
         let isSaving = false;
+        let currentTeacherFilter = 'todos'; // Filtro actual
 
         function normalizeDate(dateValue) {
             if (!dateValue) return '';
@@ -265,6 +306,7 @@
             document.getElementById('currentDate').textContent = date.toLocaleDateString('es', options);
         }
 
+        // Cargar alumnos desde CSV (ahora con columna de maestro)
         fetch('https://raw.githubusercontent.com/choquem/mi-primera-pagina/main/students.csv')
             .then(response => {
                 if (!response.ok) throw new Error('Error al cargar CSV');
@@ -273,25 +315,58 @@
             .then(text => {
                 const lines = text.split('\n').filter(line => line.trim() !== '');
                 students = [];
+                
+                // Detectar si hay columna de maestro
+                const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
+                const maestroIndex = headers.findIndex(h => h.includes('maestro') || h.includes('curso') || h.includes('teacher'));
+                
                 for (let i = 1; i < lines.length; i++) {
                     const columns = lines[i].split(',');
                     if (columns.length >= 2) {
-                        students.push(columns[1].trim());
+                        const student = {
+                            nombre: columns[1].trim(),
+                            maestro: maestroIndex >= 0 && columns[maestroIndex] ? columns[maestroIndex].trim() : 'General'
+                        };
+                        students.push(student);
                     }
                 }
                 
                 document.getElementById('loadingStudents').style.display = 'none';
                 document.getElementById('registrationPanel').style.display = 'block';
-                document.getElementById('studentCount').textContent = `${students.length} alumnos`;
+                updateStudentCount();
                 
                 renderAttendanceTable();
                 loadAttendanceFromSheet();
             })
             .catch(error => {
                 document.getElementById('loadingStudents').innerHTML = `
-                    <div class="error">❌ Error al cargar alumnos: ${error.message}. Verifica tu conexión o el archivo CSV.</div>
+                    <div class="error"> Error al cargar alumnos: ${error.message}. Verifica tu conexión o el archivo CSV.</div>
                 `;
             });
+
+        // Función para filtrar por maestro
+        function filterByTeacher(teacher) {
+            currentTeacherFilter = teacher;
+            
+            // Actualizar botones visualmente
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes(teacher === 'todos' ? 'Todos' : teacher)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            updateStudentCount();
+            renderAttendanceTable();
+        }
+
+        // Actualizar contador de alumnos visibles
+        function updateStudentCount() {
+            const filteredStudents = currentTeacherFilter === 'todos' 
+                ? students 
+                : students.filter(s => s.maestro === currentTeacherFilter);
+            document.getElementById('studentCount').textContent = `${filteredStudents.length} alumnos`;
+        }
 
         function loadAttendanceFromSheet() {
             showSyncStatus('Sincronizando...', 'syncing');
@@ -329,29 +404,34 @@
                 });
             }
 
+            // Filtrar alumnos por maestro
+            const filteredStudents = currentTeacherFilter === 'todos' 
+                ? students 
+                : students.filter(s => s.maestro === currentTeacherFilter);
+
             let html = `<table>
                 <thead><tr><th style="width: 35%;">Alumno</th><th>Estado</th></tr></thead>
                 <tbody>`;
 
-            students.forEach((student, index) => {
-                const currentState = tempAttendance[student] || '';
+            filteredStudents.forEach((student, index) => {
+                const currentState = tempAttendance[student.nombre] || '';
                 html += `<tr>
-                    <td><strong>${index + 1}. ${student}</strong></td>
+                    <td><strong>${index + 1}. ${student.nombre}</strong> <small style="color: #666;">(${student.maestro})</small></td>
                     <td>
                         <div class="status-buttons">
                             <button class="status-btn presente ${currentState === 'presente' ? 'active' : ''}" 
-                                    onclick="setStatus('${student}', 'presente')">
+                                    onclick="setStatus('${student.nombre}', 'presente')">
                                 <span class="icon">✅</span>
                                 <span>Presente</span>
                             </button>
                             <button class="status-btn ausente ${currentState === 'ausente' ? 'active' : ''}" 
-                                    onclick="setStatus('${student}', 'ausente')">
+                                    onclick="setStatus('${student.nombre}', 'ausente')">
                                 <span class="icon">❌</span>
                                 <span>Ausente</span>
                             </button>
                             <button class="status-btn tardanza ${currentState === 'tardanza' ? 'active' : ''}" 
-                                    onclick="setStatus('${student}', 'tardanza')">
-                                <span class="icon">⏰</span>
+                                    onclick="setStatus('${student.nombre}', 'tardanza')">
+                                <span class="icon"></span>
                                 <span>Tardanza</span>
                             </button>
                         </div>
@@ -442,18 +522,17 @@
             statusEl.style.display = 'inline-block';
         }
 
-        // ✅ CAMBIO CLAVE: Ahora solo genera 5 días (Lunes a Viernes)
         function getWeekDays(weekOffset = 0) {
             const now = new Date();
             const currentDay = now.getDay();
-            const diff = currentDay === 0 ? 6 : currentDay - 1; // Encuentra el lunes
+            const diff = currentDay === 0 ? 6 : currentDay - 1;
             const monday = new Date(now);
             monday.setDate(now.getDate() - diff + (weekOffset * 7));
             
             const days = [];
-            const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie']; // Solo 5 días
+            const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'];
             
-            for (let i = 0; i < 5; i++) { // Loop de 5 en lugar de 7
+            for (let i = 0; i < 5; i++) {
                 const day = new Date(monday);
                 day.setDate(monday.getDate() + i);
                 days.push({
@@ -496,14 +575,14 @@
             html += `</tr></thead><tbody>`;
 
             students.forEach((student, index) => {
-                html += `<tr><td>${index + 1}. ${student}</td>`;
+                html += `<tr><td>${index + 1}. ${student.nombre}</td>`;
                 days.forEach(day => {
-                    const record = attendanceData.find(r => r.nombre === student && r.fecha === day.date);
+                    const record = attendanceData.find(r => r.nombre === student.nombre && r.fecha === day.date);
                     let cellContent = '<span style="color: #ccc;">—</span>';
                     if (record) {
                         if (record.estado === 'presente') cellContent = '✅';
                         else if (record.estado === 'ausente') cellContent = '❌';
-                        else if (record.estado === 'tardanza') cellContent = '⏰';
+                        else if (record.estado === 'tardanza') cellContent = '';
                     }
                     html += `<td>${cellContent}</td>`;
                 });
@@ -550,7 +629,7 @@
             sortedData.forEach(record => {
                 const color = record.estado === 'presente' ? '#d4edda' : record.estado === 'ausente' ? '#f8d7da' : '#fff3cd';
                 const textColor = record.estado === 'presente' ? '#155724' : record.estado === 'ausente' ? '#721c24' : '#856404';
-                const icon = record.estado === 'presente' ? '✅' : record.estado === 'ausente' ? '❌' : '⏰';
+                const icon = record.estado === 'presente' ? '✅' : record.estado === 'ausente' ? '❌' : '';
                 
                 const dateObj = new Date(record.fecha + 'T00:00:00');
                 const fechaMostrar = !isNaN(dateObj.getTime()) 
