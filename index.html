@@ -43,9 +43,6 @@
         }
         .btn:hover { background: #00a383; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,184,148,0.3); }
         .btn:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
-        .btn-secondary { background: #6c757d; }
-        .btn-secondary:hover { background: #5a6268; }
-        .btn-secondary.active { background: #667eea; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: #667eea; color: white; padding: 12px 15px; text-align: left; font-size: 0.95rem; }
@@ -103,7 +100,7 @@
             font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        /* FILTROS DE MAESTRO */
+        /* FILTROS DE MAESTRO - DINÁMICOS */
         .teacher-filters {
             display: flex;
             gap: 10px;
@@ -115,6 +112,7 @@
             font-weight: 600;
             color: #667eea;
             font-size: 0.95rem;
+            margin-right: 10px;
         }
         .filter-btn {
             padding: 8px 18px;
@@ -220,13 +218,11 @@
             <div id="loadingStudents" class="loading">Cargando lista de alumnos...</div>
             
             <div id="registrationPanel" style="display: none;">
-                <!-- FILTROS POR MAESTRO -->
-                <div class="teacher-filters">
+                <!-- FILTROS POR MAESTRO (DINÁMICOS) -->
+                <div class="teacher-filters" id="teacherFilters">
                     <label>👨‍🏫 Filtrar por:</label>
                     <button class="filter-btn active" onclick="filterByTeacher('todos')">📚 Todos</button>
-                    <button class="filter-btn" onclick="filterByTeacher('Matemáticas')"> Matemáticas</button>
-                    <button class="filter-btn" onclick="filterByTeacher('Comunicación')">📖 Comunicación</button>
-                    <button class="filter-btn" onclick="filterByTeacher('Ciencias')">🔬 Ciencias</button>
+                    <!-- Los botones se generarán dinámicamente -->
                 </div>
                 
                 <div class="date-display">
@@ -238,14 +234,14 @@
                     <div class="student-count" id="studentCount"></div>
                 </div>
                 <div id="attendanceTable"></div>
-                <button class="btn btn-success" id="btnSave" onclick="saveAttendanceToSheet()"> Guardar en Google Sheets</button>
+                <button class="btn" id="btnSave" onclick="saveAttendanceToSheet()">💾 Guardar en Google Sheets</button>
                 <span id="syncStatus" class="sync-status connected" style="display: none;"></span>
                 <div id="saveMessage" style="margin-top: 10px;"></div>
             </div>
         </div>
 
         <div class="card">
-            <h2>📊 Resumen Semanal</h2>
+            <h2> Resumen Semanal</h2>
             <div class="week-selector" id="weekSelector"></div>
             <div class="week-range" id="weekRange"></div>
             <div id="weeklySummaryTable"></div>
@@ -274,7 +270,8 @@
         let selectedWeek = 0;
         let tempAttendance = {};
         let isSaving = false;
-        let currentTeacherFilter = 'todos'; // Filtro actual
+        let currentTeacherFilter = 'todos';
+        let uniqueTeachers = []; // Lista única de maestros
 
         function normalizeDate(dateValue) {
             if (!dateValue) return '';
@@ -306,7 +303,7 @@
             document.getElementById('currentDate').textContent = date.toLocaleDateString('es', options);
         }
 
-        // Cargar alumnos desde CSV (ahora con columna de maestro)
+        // Cargar alumnos desde CSV y extraer maestros únicos
         fetch('https://raw.githubusercontent.com/choquem/mi-primera-pagina/main/students.csv')
             .then(response => {
                 if (!response.ok) throw new Error('Error al cargar CSV');
@@ -315,21 +312,30 @@
             .then(text => {
                 const lines = text.split('\n').filter(line => line.trim() !== '');
                 students = [];
+                const teachersSet = new Set();
                 
-                // Detectar si hay columna de maestro
+                // Detectar columna de maestro
                 const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
-                const maestroIndex = headers.findIndex(h => h.includes('maestro') || h.includes('curso') || h.includes('teacher'));
+                const maestroIndex = headers.findIndex(h => h.includes('maestro') || h.includes('curso') || h.includes('teacher') || h.includes('profesor'));
                 
                 for (let i = 1; i < lines.length; i++) {
                     const columns = lines[i].split(',');
                     if (columns.length >= 2) {
-                        const student = {
-                            nombre: columns[1].trim(),
-                            maestro: maestroIndex >= 0 && columns[maestroIndex] ? columns[maestroIndex].trim() : 'General'
-                        };
-                        students.push(student);
+                        const nombre = columns[1].trim();
+                        const maestro = maestroIndex >= 0 && columns[maestroIndex] ? columns[maestroIndex].trim() : 'General';
+                        
+                        students.push({ nombre, maestro });
+                        if (maestro && maestro !== '') {
+                            teachersSet.add(maestro);
+                        }
                     }
                 }
+                
+                // Convertir Set a array ordenado
+                uniqueTeachers = Array.from(teachersSet).sort();
+                
+                // Generar botones de filtro dinámicamente
+                generateTeacherFilters();
                 
                 document.getElementById('loadingStudents').style.display = 'none';
                 document.getElementById('registrationPanel').style.display = 'block';
@@ -340,9 +346,26 @@
             })
             .catch(error => {
                 document.getElementById('loadingStudents').innerHTML = `
-                    <div class="error"> Error al cargar alumnos: ${error.message}. Verifica tu conexión o el archivo CSV.</div>
+                    <div class="error">❌ Error al cargar alumnos: ${error.message}. Verifica tu conexión o el archivo CSV.</div>
                 `;
             });
+
+        // Generar botones de filtro automáticamente
+        function generateTeacherFilters() {
+            const container = document.getElementById('teacherFilters');
+            
+            // Mantener solo el botón "Todos" y el label
+            container.innerHTML = '<label>👨‍🏫 Filtrar por:</label><button class="filter-btn active" onclick="filterByTeacher(\'todos\')">📚 Todos</button>';
+            
+            // Agregar un botón por cada maestro único
+            uniqueTeachers.forEach(teacher => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.textContent = teacher;
+                btn.onclick = () => filterByTeacher(teacher);
+                container.appendChild(btn);
+            });
+        }
 
         // Función para filtrar por maestro
         function filterByTeacher(teacher) {
@@ -351,7 +374,9 @@
             // Actualizar botones visualmente
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
-                if (btn.textContent.includes(teacher === 'todos' ? 'Todos' : teacher)) {
+                if (teacher === 'todos' && btn.textContent.includes('Todos')) {
+                    btn.classList.add('active');
+                } else if (btn.textContent === teacher) {
                     btn.classList.add('active');
                 }
             });
@@ -389,7 +414,7 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showSyncStatus('❌ Error de red', 'error');
+                    showSyncStatus(' Error de red', 'error');
                 });
         }
 
@@ -582,7 +607,7 @@
                     if (record) {
                         if (record.estado === 'presente') cellContent = '✅';
                         else if (record.estado === 'ausente') cellContent = '❌';
-                        else if (record.estado === 'tardanza') cellContent = '';
+                        else if (record.estado === 'tardanza') cellContent = '⏰';
                     }
                     html += `<td>${cellContent}</td>`;
                 });
@@ -629,7 +654,7 @@
             sortedData.forEach(record => {
                 const color = record.estado === 'presente' ? '#d4edda' : record.estado === 'ausente' ? '#f8d7da' : '#fff3cd';
                 const textColor = record.estado === 'presente' ? '#155724' : record.estado === 'ausente' ? '#721c24' : '#856404';
-                const icon = record.estado === 'presente' ? '✅' : record.estado === 'ausente' ? '❌' : '';
+                const icon = record.estado === 'presente' ? '✅' : record.estado === 'ausente' ? '❌' : '⏰';
                 
                 const dateObj = new Date(record.fecha + 'T00:00:00');
                 const fechaMostrar = !isNaN(dateObj.getTime()) 
