@@ -240,7 +240,7 @@
 </head>
 <body>
     <div class="container">
-        <h1> Control de Asistencia</h1>
+        <h1>📋 Control de Asistencia</h1>
         
         <div class="card">
             <h2>👥 Lista de Alumnos</h2>
@@ -264,7 +264,7 @@
         </div>
 
         <div class="card">
-            <h2>📊 Resumen Semanal</h2>
+            <h2> Resumen Semanal</h2>
             <div class="week-selector" id="weekSelector"></div>
             <div class="week-range" id="weekRange"></div>
             <div id="weeklySummaryTable"></div>
@@ -280,16 +280,16 @@
         </div>
 
         <div class="card">
-            <h2> Historial de Asistencia</h2>
+            <h2>📝 Historial de Asistencia</h2>
             <div id="historyTable"></div>
         </div>
     </div>
 
     <script>
         // ============================================
-        //  CONFIGURACIÓN - PEGA AQUÍ TU URL
+        //  CONFIGURACIÓN - URL DE GOOGLE APPS SCRIPT
         // ============================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxR9uylG4L8zsahu7SYz8WNF1gUk5ksKtEEi4U3I5PHtksuwFnbJQTu2qhKZ0ljFWn6fQ/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxR9uyIG4L8zsahu7SYz8WNF1gUk5ksKtEEi4U3I5PHtksuwFnbJQTu2qhKZ0ljF/exechttps://script.google.com/macros/s/AKfycbxR9uylG4L8zsahu7SYz8WNF1gUk5ksKtEEi4U3I5PHtksuwFnbJQTu2qhKZ0ljFWn6fQ/exec';
         // ============================================
         
         let students = [];
@@ -346,19 +346,6 @@
             });
 
         function loadAttendanceFromSheet() {
-            if (GOOGLE_SCRIPT_URL === 'AQUI_PEGA_TU_URL_DEL_APPS_SCRIPT') {
-                document.getElementById('studentInfo').innerHTML += `
-                    <div class="warning">
-                        ️ <strong>Configuración pendiente:</strong><br>
-                        Reemplaza la variable GOOGLE_SCRIPT_URL al inicio del script con tu URL de Apps Script
-                    </div>
-                `;
-                renderAttendanceTable();
-                renderWeekSelector();
-                renderWeeklySummary();
-                return;
-            }
-
             showSyncStatus('Cargando datos...', 'syncing');
             
             fetch(GOOGLE_SCRIPT_URL)
@@ -412,7 +399,7 @@
                             </button>
                             <button class="status-btn tardanza ${currentState === 'tardanza' ? 'active' : ''}" 
                                     onclick="setStatus('${student}', 'tardanza')">
-                                <span class="icon">⏰</span>
+                                <span class="icon"></span>
                                 <span class="label">Tardanza</span>
                             </button>
                         </div>
@@ -433,14 +420,9 @@
             event.target.closest('.status-btn').classList.add('active');
         }
 
-        function saveAttendanceToSheet() {
+        async function saveAttendanceToSheet() {
             if (isSaving) {
-                alert(' Ya se está guardando, espera un momento...');
-                return;
-            }
-
-            if (GOOGLE_SCRIPT_URL === 'AQUI_PEGA_TU_URL_DEL_APPS_SCRIPT') {
-                alert('⚠️ Primero debes configurar la URL de Google Apps Script al inicio del script');
+                alert('⏳ Ya se está guardando, espera un momento...');
                 return;
             }
 
@@ -458,6 +440,7 @@
             btnSave.textContent = '⏳ Guardando...';
             showSyncStatus('Guardando...', 'syncing');
 
+            // Eliminar registros anteriores de esta fecha (localmente)
             attendanceData = attendanceData.filter(r => r.fecha !== fecha);
             
             const newRecords = [];
@@ -471,45 +454,45 @@
                 newRecords.push(record);
             });
 
-            let savedCount = 0;
-            const promises = newRecords.map(record => {
-                return fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(record)
-                }).then(() => {
-                    savedCount++;
-                });
-            });
-
-            Promise.all(promises)
-                .then(() => {
-                    localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
-                    showSyncStatus('✅ Guardado', 'connected');
-                    document.getElementById('saveMessage').innerHTML = `
-                        <div class="success">✅ ${savedCount} registros guardados en Google Sheets</div>
-                    `;
-                    setTimeout(() => {
-                        document.getElementById('saveMessage').innerHTML = '';
-                    }, 3000);
-                    renderWeeklySummary();
-                    renderHistory();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showSyncStatus('❌ Error', 'error');
-                    document.getElementById('saveMessage').innerHTML = `
-                        <div class="error"> Error al guardar: ${error.message}</div>
-                    `;
-                })
-                .finally(() => {
-                    isSaving = false;
-                    btnSave.disabled = false;
-                    btnSave.textContent = '💾 Guardar en Google Sheets';
-                });
+            try {
+                // Guardar uno por uno con delay para evitar duplicados
+                for (let i = 0; i < newRecords.length; i++) {
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newRecords[i])
+                    });
+                    
+                    // Esperar 300ms entre cada registro
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+                
+                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+                showSyncStatus('✅ Guardado', 'connected');
+                document.getElementById('saveMessage').innerHTML = `
+                    <div class="success">✅ ${newRecords.length} registros guardados en Google Sheets</div>
+                `;
+                setTimeout(() => {
+                    document.getElementById('saveMessage').innerHTML = '';
+                }, 3000);
+                
+                // Recargar datos desde Sheets después de 1 segundo
+                setTimeout(() => {
+                    loadAttendanceFromSheet();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showSyncStatus(' Error', 'error');
+                document.getElementById('saveMessage').innerHTML = `
+                    <div class="error">❌ Error al guardar: ${error.message}</div>
+                `;
+            } finally {
+                isSaving = false;
+                btnSave.disabled = false;
+                btnSave.textContent = '💾 Guardar en Google Sheets';
+            }
         }
 
         function showSyncStatus(message, type) {
@@ -650,7 +633,7 @@
             sortedData.forEach(record => {
                 const color = record.estado === 'presente' ? '#d4edda' : record.estado === 'ausente' ? '#f8d7da' : '#fff3cd';
                 const textColor = record.estado === 'presente' ? '#155724' : record.estado === 'ausente' ? '#721c24' : '#856404';
-                const icon = record.estado === 'presente' ? '✅' : record.estado === 'ausente' ? '❌' : '';
+                const icon = record.estado === 'presente' ? '✅' : record.estado === 'ausente' ? '❌' : '⏰';
                 html += `<tr>
                     <td>${record.nombre}</td>
                     <td>${new Date(record.fecha + 'T00:00:00').toLocaleDateString('es')}</td>
