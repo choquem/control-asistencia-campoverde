@@ -3,703 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Asistencia Campo Verde</title>
+    <title>Login - Control de Asistencia</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { text-align: center; color: white; margin-bottom: 30px; font-size: 2.2rem; }
-        .card {
+        .login-box {
             background: white;
+            padding: 40px;
             border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 450px;
+            width: 100%;
         }
-        .card h2 { color: #667eea; margin-bottom: 20px; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
-        input[type="date"] {
-            padding: 10px 15px;
+        h1 { text-align: center; color: #667eea; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #667eea; }
+        input {
+            width: 100%;
+            padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 1rem;
         }
+        input:focus { outline: none; border-color: #667eea; }
         .btn {
-            padding: 10px 25px;
+            width: 100%;
+            padding: 12px;
             background: #00b894;
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
+        }
+        .btn:hover { background: #00a383; }
+        .error { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; margin-top: 15px; }
+        .success { background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-top: 15px; }
+        .info {
             margin-top: 20px;
-            margin-right: 10px;
-            transition: all 0.3s;
-        }
-        .btn:hover { background: #00a383; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,184,148,0.3); }
-        .btn:disabled { background: #95a5a6; cursor: not-allowed; transform: none; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: #667eea; color: white; padding: 12px 15px; text-align: left; font-size: 0.95rem; }
-        td { padding: 12px 15px; border-bottom: 1px solid #e0e0e0; font-size: 0.95rem; }
-        tr:hover { background: #f8f9fa; }
-        
-        .status-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-        .status-btn {
-            padding: 8px 16px;
-            border: 2px solid #e0e0e0;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-            font-weight: 600;
-            min-width: 110px;
-            text-align: center;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        .status-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .status-btn .icon { font-size: 1.2rem; line-height: 1; }
-        
-        .status-btn.presente { border-color: #00b894; color: #00b894; }
-        .status-btn.presente.active {
-            background: #00b894; color: white; border-color: #00b894; box-shadow: 0 4px 12px rgba(0,184,148,0.4);
-        }
-        .status-btn.presente.active::after {
-            content: '✓'; position: absolute; top: -6px; right: -6px; background: white; color: #00b894;
-            width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        
-        .status-btn.ausente { border-color: #e74c3c; color: #e74c3c; }
-        .status-btn.ausente.active {
-            background: #e74c3c; color: white; border-color: #e74c3c; box-shadow: 0 4px 12px rgba(231,76,60,0.4);
-        }
-        .status-btn.ausente.active::after {
-            content: '✓'; position: absolute; top: -6px; right: -6px; background: white; color: #e74c3c;
-            width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        
-        .status-btn.tardanza { border-color: #fdcb6e; color: #e17055; }
-        .status-btn.tardanza.active {
-            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%); color: white; border-color: #fdcb6e; box-shadow: 0 4px 12px rgba(253,203,110,0.4);
-        }
-        .status-btn.tardanza.active::after {
-            content: '✓'; position: absolute; top: -6px; right: -6px; background: white; color: #fdcb6e;
-            width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
-        .teacher-filters {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .teacher-filters label {
-            font-weight: 600;
-            color: #667eea;
-            font-size: 0.95rem;
-            margin-right: 10px;
-        }
-        .filter-btn {
-            padding: 8px 18px;
-            background: #f0f0f0;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        .filter-btn:hover { background: #e0e0e0; }
-        .filter-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .week-selector { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
-        .week-btn {
-            padding: 8px 16px;
-            background: #f0f0f0;
-            border: 2px solid transparent;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-        }
-        .week-btn:hover { background: #e0e0e0; }
-        .week-btn.active { background: #667eea; color: white; }
-        
-        .week-range {
-            background: #f8f9fa;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-            color: #667eea;
-            font-weight: 600;
-        }
-        
-        .summary-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
-        .summary-table th { background: #667eea; color: white; padding: 10px 8px; text-align: center; font-weight: 600; }
-        .summary-table th:first-child { text-align: left; padding-left: 15px; min-width: 180px; }
-        .summary-table td { padding: 10px 8px; text-align: center; border-bottom: 1px solid #e0e0e0; font-size: 1.2rem; }
-        .summary-table td:first-child { text-align: left; padding-left: 15px; font-weight: 600; font-size: 0.9rem; }
-        .summary-table tr:hover { background: #f8f9fa; }
-        .summary-table .day-header { font-size: 0.8rem; }
-        .summary-table .date-sub { font-size: 0.7rem; opacity: 0.8; font-weight: normal; }
-        
-        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 20px; }
-        .stat-mini { padding: 12px; border-radius: 10px; text-align: center; color: white; }
-        .stat-mini .num { font-size: 1.5rem; font-weight: bold; }
-        .stat-mini .lbl { font-size: 0.8rem; opacity: 0.9; }
-        
-        .progress-bar { width: 100%; height: 25px; background: #e0e0e0; border-radius: 12px; overflow: hidden; margin-top: 15px; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #00ff88, #00d4ff); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.85rem; transition: width 0.5s; }
-        
-        .success { background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin: 10px 0; font-size: 0.9rem; }
-        .error { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; margin: 10px 0; font-size: 0.9rem; }
-        .loading { color: #667eea; font-size: 1rem; padding: 15px; text-align: center; }
-        
-        .date-display {
-            background: #f8f9fa;
             padding: 15px;
+            background: #f8f9fa;
             border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
+            font-size: 0.85rem;
         }
-        .current-date { font-size: 1.1rem; font-weight: 600; color: #667eea; }
-        .student-count { background: #667eea; color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; }
-        
-        .sync-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-left: 10px; }
-        .sync-status.connected { background: #d4edda; color: #155724; }
-        .sync-status.syncing { background: #fff3cd; color: #856404; }
-        .sync-status.error { background: #f8d7da; color: #721c24; }
-        
-        @media (max-width: 768px) {
-            h1 { font-size: 1.6rem; }
-            .card { padding: 15px; }
-            table { font-size: 0.85rem; }
-            th, td { padding: 8px; }
-            .status-buttons { flex-direction: column; }
-            .status-btn { width: 100%; min-width: auto; justify-content: flex-start; padding-left: 15px; }
-            .summary-table { font-size: 0.8rem; }
-            .summary-table td { font-size: 1rem; padding: 6px 4px; }
-            .summary-table td:first-child { font-size: 0.8rem; min-width: 120px; }
-            .teacher-filters { flex-direction: column; align-items: stretch; }
-            .filter-btn { width: 100%; }
-        }
+        .info code { background: #e0e0e0; padding: 2px 6px; border-radius: 4px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1> Control de Asistencia</h1>
+    <div class="login-box">
+        <h1> Login</h1>
         
-        <div class="card" id="attendanceCard">
-            <h2>✅ Registrar Asistencia</h2>
-            <div id="loadingStudents" class="loading">Cargando lista de alumnos...</div>
-            
-            <div id="registrationPanel" style="display: none;">
-                <div class="teacher-filters" id="teacherFilters">
-                    <label>‍🏫 Filtrar por:</label>
-                    <button class="filter-btn active" onclick="filterByTeacher('todos')">📚 Todos</button>
-                </div>
-                
-                <div class="date-display">
-                    <div>
-                        <label for="fecha" style="margin-bottom: 5px; display: block; font-size: 0.9rem; color: #666;">Fecha:</label>
-                        <input type="date" id="fecha">
-                    </div>
-                    <div class="current-date" id="currentDate"></div>
-                    <div class="student-count" id="studentCount"></div>
-                </div>
-                <div id="attendanceTable"></div>
-                <button class="btn" id="btnSave" onclick="saveAttendanceToSheet()">💾 Guardar en Google Sheets</button>
-                <span id="syncStatus" class="sync-status connected" style="display: none;"></span>
-                <div id="saveMessage" style="margin-top: 10px;"></div>
-            </div>
+        <div class="form-group">
+            <label>Usuario:</label>
+            <input type="text" id="username" placeholder="admin o invitado">
         </div>
-
-        <div class="card">
-            <h2> Resumen Semanal</h2>
-            <div class="teacher-filters" id="summaryTeacherFilters">
-                <label>👨‍ Filtrar resumen:</label>
-                <button class="filter-btn active" onclick="filterSummaryByTeacher('todos')">📚 Todos</button>
-            </div>
-            <div class="week-selector" id="weekSelector"></div>
-            <div class="week-range" id="weekRange"></div>
-            <div id="weeklySummaryTable"></div>
-            
-            <div class="stats-row" id="statsRow"></div>
-            
-            <div style="margin-top: 20px;">
-                <label style="margin-bottom: 10px; display: block; font-weight: 600; font-size: 0.9rem;">Porcentaje de Asistencia:</label>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
-                </div>
-            </div>
+        
+        <div class="form-group">
+            <label>Contraseña:</label>
+            <input type="password" id="password" placeholder="Contraseña">
         </div>
-
-        <div class="card">
-            <h2>📝 Historial de Asistencia</h2>
-            <div id="historyTable"></div>
+        
+        <button class="btn" onclick="login()">Ingresar</button>
+        
+        <div id="message"></div>
+        
+        <div class="info">
+            <strong>Credenciales:</strong><br>
+            Admin: <code>admin</code> / <code>admin123</code><br>
+            Invitado: <code>invitado</code> / <code>invitado123</code>
         </div>
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbRCXWVKIVk9AFl65K0r2G5J_pOT4J56MuHCsrFOTwBYehR-9mOMkRpO2VGSP0Xck81g/exec';
+        console.log('🔍 Script cargado correctamente');
         
-        let students = [];
-        let attendanceData = [];
-        let selectedWeek = 0;
-        let tempAttendance = {};
-        let isSaving = false;
-        let currentTeacherFilter = 'todos';
-        let summaryTeacherFilter = 'todos';
-        let uniqueTeachers = [];
+        // Usuarios
+        const USERS = {
+            admin: { user: 'admin', pass: 'admin123', role: 'admin' },
+            invitado: { user: 'invitado', pass: 'invitado123', role: 'invitado' }
+        };
 
-        // ✅ FUNCIÓN CLAVE: Obtener fecha en formato YYYY-MM-DD usando hora LOCAL
-        function getLocalDate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        function normalizeDate(dateValue) {
-            if (!dateValue) return '';
-            if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue.trim())) return dateValue.trim();
-            if (dateValue instanceof Date) return getLocalDate(dateValue);
-            if (typeof dateValue === 'number') {
-                const date = new Date(Math.round((dateValue - 25569) * 86400 * 1000));
-                return getLocalDate(date);
+        function login() {
+            console.log('🔑 Intentando login...');
+            
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const msgDiv = document.getElementById('message');
+            
+            if (!user || !pass) {
+                msgDiv.innerHTML = '<div class="error">⚠️ Completa usuario y contraseña</div>';
+                return;
             }
-            if (typeof dateValue === 'string') {
-                const date = new Date(dateValue);
-                if (!isNaN(date.getTime())) return getLocalDate(date);
+            
+            console.log('Usuario:', user);
+            
+            const userData = USERS[user];
+            
+            if (!userData) {
+                msgDiv.innerHTML = '<div class="error">❌ Usuario no existe</div>';
+                console.log('❌ Usuario no encontrado');
+                return;
             }
-            return String(dateValue);
+            
+            if (userData.pass !== pass) {
+                msgDiv.innerHTML = '<div class="error">❌ Contraseña incorrecta</div>';
+                console.log(' Contraseña incorrecta');
+                return;
+            }
+            
+            // Guardar sesión
+            localStorage.setItem('authSession', JSON.stringify({
+                username: userData.user,
+                role: userData.role,
+                loginTime: new Date().toISOString()
+            }));
+            
+            console.log('✅ Login exitoso. Rol:', userData.role);
+            msgDiv.innerHTML = '<div class="success">✅ Login exitoso. Redirigiendo...</div>';
+            
+            // Redirigir
+            setTimeout(() => {
+                const nextPage = userData.role === 'admin' ? 'registro.html' : 'reporte.html';
+                console.log(' Redirigiendo a:', nextPage);
+                window.location.href = nextPage;
+            }, 1000);
         }
 
-        function getBestStatus(records) {
-            if (!records || records.length === 0) return null;
-            if (records.some(r => r.estado === 'presente')) return 'presente';
-            if (records.some(r => r.estado === 'tardanza')) return 'tardanza';
-            if (records.some(r => r.estado === 'ausente')) return 'ausente';
-            return records[0].estado;
-        }
-
-        function deduplicateAttendance(data) {
-            const grouped = {};
-            data.forEach(record => {
-                const key = `${record.nombre}|${record.fecha}`;
-                if (!grouped[key]) grouped[key] = [];
-                grouped[key].push(record);
-            });
-            const deduplicated = [];
-            Object.keys(grouped).forEach(key => {
-                const records = grouped[key];
-                const bestStatus = getBestStatus(records);
-                deduplicated.push({
-                    nombre: records[0].nombre,
-                    fecha: records[0].fecha,
-                    estado: bestStatus
-                });
-            });
-            return deduplicated;
-        }
-
-        document.getElementById('fecha').valueAsDate = new Date();
-        updateCurrentDate();
-
-        document.getElementById('fecha').addEventListener('change', function() {
-            updateCurrentDate();
-            renderAttendanceTable();
+        // Enter key
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
         });
-
-        function updateCurrentDate() {
-            const fechaInput = document.getElementById('fecha').value;
-            const date = new Date(fechaInput + 'T00:00:00');
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('currentDate').textContent = date.toLocaleDateString('es', options);
-        }
-
-        fetch('https://raw.githubusercontent.com/choquem/mi-primera-pagina/main/students.csv')
-            .then(response => {
-                if (!response.ok) throw new Error('Error al cargar CSV');
-                return response.text();
-            })
-            .then(text => {
-                const lines = text.split('\n').filter(line => line.trim() !== '');
-                students = [];
-                const teachersSet = new Set();
-                
-                const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
-                const maestroIndex = headers.findIndex(h => h.includes('maestro') || h.includes('curso') || h.includes('teacher') || h.includes('profesor'));
-                
-                for (let i = 1; i < lines.length; i++) {
-                    const columns = lines[i].split(',');
-                    if (columns.length >= 2) {
-                        const nombre = columns[1].trim();
-                        const maestro = maestroIndex >= 0 && columns[maestroIndex] ? columns[maestroIndex].trim() : 'General';
-                        students.push({ nombre, maestro });
-                        if (maestro && maestro !== '') teachersSet.add(maestro);
-                    }
-                }
-                
-                uniqueTeachers = Array.from(teachersSet).sort();
-                generateTeacherFilters('teacherFilters', filterByTeacher);
-                generateTeacherFilters('summaryTeacherFilters', filterSummaryByTeacher);
-                
-                document.getElementById('loadingStudents').style.display = 'none';
-                document.getElementById('registrationPanel').style.display = 'block';
-                updateStudentCount();
-                renderAttendanceTable();
-                loadAttendanceFromSheet();
-            })
-            .catch(error => {
-                document.getElementById('loadingStudents').innerHTML = `
-                    <div class="error">❌ Error al cargar alumnos: ${error.message}</div>
-                `;
-            });
-
-        function generateTeacherFilters(containerId, callback) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '<label>👨‍🏫 Filtrar:</label><button class="filter-btn active" onclick="filterByTeacher(\'todos\')">📚 Todos</button>';
-            uniqueTeachers.forEach(teacher => {
-                const btn = document.createElement('button');
-                btn.className = 'filter-btn';
-                btn.textContent = teacher;
-                btn.onclick = () => callback(teacher);
-                container.appendChild(btn);
-            });
-        }
-
-        function filterByTeacher(teacher) {
-            currentTeacherFilter = teacher;
-            updateFilterButtons('teacherFilters', teacher);
-            updateStudentCount();
-            renderAttendanceTable();
-        }
-
-        function filterSummaryByTeacher(teacher) {
-            summaryTeacherFilter = teacher;
-            updateFilterButtons('summaryTeacherFilters', teacher);
-            renderWeeklySummary();
-        }
-
-        function updateFilterButtons(containerId, activeTeacher) {
-            document.querySelectorAll(`#${containerId} .filter-btn`).forEach(btn => {
-                btn.classList.remove('active');
-                if (activeTeacher === 'todos' && btn.textContent.includes('Todos')) {
-                    btn.classList.add('active');
-                } else if (btn.textContent === activeTeacher) {
-                    btn.classList.add('active');
-                }
-            });
-        }
-
-        function updateStudentCount() {
-            const filteredStudents = currentTeacherFilter === 'todos' 
-                ? students 
-                : students.filter(s => s.maestro === currentTeacherFilter);
-            document.getElementById('studentCount').textContent = `${filteredStudents.length} alumnos`;
-        }
-
-        function loadAttendanceFromSheet() {
-            showSyncStatus('Sincronizando...', 'syncing');
-            fetch(GOOGLE_SCRIPT_URL)
-                .then(response => response.text())
-                .then(text => {
-                    try {
-                        const result = JSON.parse(text);
-                        if (result.result === 'success') {
-                            attendanceData = deduplicateAttendance(
-                                (result.data || []).map(record => ({
-                                    fecha: normalizeDate(record.fecha),
-                                    nombre: String(record.nombre).trim(),
-                                    estado: String(record.estado).trim()
-                                }))
-                            );
-                            showSyncStatus('✅ Sincronizado', 'connected');
-                            renderWeekSelector();
-                            renderWeeklySummary();
-                            renderHistory();
-                        }
-                    } catch (e) {
-                        console.error('Error:', e);
-                        showSyncStatus('❌ Error de formato', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showSyncStatus('❌ Error de red', 'error');
-                });
-        }
-
-        function renderAttendanceTable() {
-            const fecha = document.getElementById('fecha').value;
-            if (Object.keys(tempAttendance).length === 0 || !tempAttendance._loadedFor || tempAttendance._loadedFor !== fecha) {
-                tempAttendance = { _loadedFor: fecha };
-                const existingRecords = attendanceData.filter(r => r.fecha === fecha);
-                existingRecords.forEach(record => {
-                    tempAttendance[record.nombre] = record.estado;
-                });
-            }
-
-            const filteredStudents = currentTeacherFilter === 'todos' 
-                ? students 
-                : students.filter(s => s.maestro === currentTeacherFilter);
-
-            let html = `<table><thead><tr><th style="width: 35%;">Alumno</th><th>Estado</th></tr></thead><tbody>`;
-            filteredStudents.forEach((student, index) => {
-                const currentState = tempAttendance[student.nombre] || '';
-                html += `<tr>
-                    <td><strong>${index + 1}. ${student.nombre}</strong> <small style="color: #666;">(${student.maestro})</small></td>
-                    <td>
-                        <div class="status-buttons">
-                            <button class="status-btn presente ${currentState === 'presente' ? 'active' : ''}" onclick="setStatus('${student.nombre}', 'presente')">
-                                <span class="icon">✅</span><span>Presente</span>
-                            </button>
-                            <button class="status-btn ausente ${currentState === 'ausente' ? 'active' : ''}" onclick="setStatus('${student.nombre}', 'ausente')">
-                                <span class="icon">❌</span><span>Ausente</span>
-                            </button>
-                            <button class="status-btn tardanza ${currentState === 'tardanza' ? 'active' : ''}" onclick="setStatus('${student.nombre}', 'tardanza')">
-                                <span class="icon">⏰</span><span>Tardanza</span>
-                            </button>
-                        </div>
-                    </td>
-                </tr>`;
-            });
-            html += '</tbody></table>';
-            document.getElementById('attendanceTable').innerHTML = html;
-        }
-
-        function setStatus(student, status) {
-            tempAttendance[student] = status;
-            const row = event.target.closest('tr');
-            const buttons = row.querySelectorAll('.status-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.closest('.status-btn').classList.add('active');
-        }
-
-        async function saveAttendanceToSheet() {
-            if (isSaving) {
-                alert('⏳ Ya se está guardando, espera...');
-                return;
-            }
-
-            const fechaInput = document.getElementById('fecha').value;
-            if (!fechaInput) {
-                alert('⚠️ Selecciona una fecha');
-                return;
-            }
-            
-            // ✅ USAR LA FECHA DIRECTAMENTE DEL INPUT (ya viene en YYYY-MM-DD)
-            const fecha = fechaInput;
-            
-            const validEntries = Object.keys(tempAttendance).filter(k => k !== '_loadedFor');
-            if (validEntries.length === 0) {
-                alert('Marca al menos un alumno');
-                return;
-            }
-
-            isSaving = true;
-            const btnSave = document.getElementById('btnSave');
-            btnSave.disabled = true;
-            btnSave.textContent = '⏳ Guardando...';
-            showSyncStatus('Guardando...', 'syncing');
-
-            const newRecords = [];
-            validEntries.forEach(student => {
-                newRecords.push({ nombre: student, fecha: fecha, estado: tempAttendance[student] });
-            });
-
-            try {
-                for (let i = 0; i < newRecords.length; i++) {
-                    await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(newRecords[i])
-                    });
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                }
-                
-                showSyncStatus('✅ Guardado', 'connected');
-                document.getElementById('saveMessage').innerHTML = `<div class="success">✅ ${newRecords.length} registros guardados</div>`;
-                setTimeout(() => { document.getElementById('saveMessage').innerHTML = ''; }, 3000);
-                setTimeout(() => { loadAttendanceFromSheet(); }, 1000);
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showSyncStatus('❌ Error', 'error');
-            } finally {
-                isSaving = false;
-                btnSave.disabled = false;
-                btnSave.textContent = '💾 Guardar en Google Sheets';
-            }
-        }
-
-        function showSyncStatus(message, type) {
-            const statusEl = document.getElementById('syncStatus');
-            statusEl.textContent = message;
-            statusEl.className = 'sync-status ' + type;
-            statusEl.style.display = 'inline-block';
-        }
-
-        // ✅ CORREGIDO: Usa getLocalDate() en lugar de toISOString()
-        function getWeekDays(weekOffset = 0) {
-            const now = new Date();
-            const currentDay = now.getDay();
-            const diff = currentDay === 0 ? 6 : currentDay - 1;
-            const monday = new Date(now);
-            monday.setDate(now.getDate() - diff + (weekOffset * 7));
-            
-            const days = [];
-            const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'];
-            
-            for (let i = 0; i < 5; i++) {
-                const day = new Date(monday);
-                day.setDate(monday.getDate() + i);
-                days.push({
-                    date: getLocalDate(day), // ✅ Hora local, no UTC
-                    name: dayNames[i],
-                    fullDate: day.toLocaleDateString('es', { day: '2-digit', month: 'short' })
-                });
-            }
-            return days;
-        }
-
-        function renderWeekSelector() {
-            const selector = document.getElementById('weekSelector');
-            selector.innerHTML = '';
-            for (let i = 0; i >= -3; i--) {
-                const btn = document.createElement('button');
-                btn.className = 'week-btn' + (i === selectedWeek ? ' active' : '');
-                btn.textContent = i === 0 ? '📅 Esta Semana' : i === -1 ? ' Semana Pasada' : `Semana ${i}`;
-                btn.onclick = () => {
-                    selectedWeek = i;
-                    document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    renderWeeklySummary();
-                };
-                selector.appendChild(btn);
-            }
-        }
-
-        function renderWeeklySummary() {
-            const days = getWeekDays(selectedWeek);
-            const firstDay = days[0];
-            const lastDay = days[days.length - 1];
-            
-            document.getElementById('weekRange').textContent = `📆 ${firstDay.fullDate} - ${lastDay.fullDate} (${firstDay.name} a ${lastDay.name})`;
-
-            const filteredStudents = summaryTeacherFilter === 'todos' 
-                ? students 
-                : students.filter(s => s.maestro === summaryTeacherFilter);
-
-            let html = `<table class="summary-table"><thead><tr><th>Alumno</th>`;
-            days.forEach(day => {
-                html += `<th><div class="day-header">${day.name}</div><div class="date-sub">${day.fullDate}</div></th>`;
-            });
-            html += `</tr></thead><tbody>`;
-
-            filteredStudents.forEach((student, index) => {
-                html += `<tr><td>${index + 1}. ${student.nombre}</td>`;
-                days.forEach(day => {
-                    const allRecords = attendanceData.filter(r => r.nombre === student.nombre && r.fecha === day.date);
-                    const bestStatus = getBestStatus(allRecords);
-                    
-                    let cellContent = '<span style="color: #ccc;">—</span>';
-                    if (bestStatus === 'presente') cellContent = '✅';
-                    else if (bestStatus === 'ausente') cellContent = '❌';
-                    else if (bestStatus === 'tardanza') cellContent = '⏰';
-                    
-                    html += `<td>${cellContent}</td>`;
-                });
-                html += `</tr>`;
-            });
-            html += '</tbody></table>';
-            document.getElementById('weeklySummaryTable').innerHTML = html;
-
-            const weekDates = days.map(d => d.date);
-            const weekData = attendanceData.filter(r => {
-                const isInWeek = weekDates.includes(r.fecha);
-                const isInFilter = summaryTeacherFilter === 'todos' 
-                    ? true 
-                    : filteredStudents.some(s => s.nombre === r.nombre);
-                return isInWeek && isInFilter;
-            });
-            
-            const total = weekData.length;
-            const presentes = weekData.filter(r => r.estado === 'presente').length;
-            const ausentes = weekData.filter(r => r.estado === 'ausente').length;
-            const tardanzas = weekData.filter(r => r.estado === 'tardanza').length;
-            const porcentaje = total > 0 ? Math.round(((presentes + tardanzas) / total) * 100) : 0;
-
-            document.getElementById('statsRow').innerHTML = `
-                <div class="stat-mini" style="background: linear-gradient(135deg, #667eea, #764ba2);"><div class="num">${total}</div><div class="lbl">Total</div></div>
-                <div class="stat-mini" style="background: linear-gradient(135deg, #00b894, #00cec9);"><div class="num">${presentes}</div><div class="lbl">✅ Presentes</div></div>
-                <div class="stat-mini" style="background: linear-gradient(135deg, #fdcb6e, #e17055);"><div class="num">${tardanzas}</div><div class="lbl">⏰ Tardanzas</div></div>
-                <div class="stat-mini" style="background: linear-gradient(135deg, #e74c3c, #fd79a8);"><div class="num">${ausentes}</div><div class="lbl">❌ Ausentes</div></div>
-            `;
-
-            const progressFill = document.getElementById('progressFill');
-            progressFill.style.width = porcentaje + '%';
-            progressFill.textContent = porcentaje + '%';
-        }
-
-        function renderHistory() {
-            const historyTable = document.getElementById('historyTable');
-            if (attendanceData.length === 0) {
-                historyTable.innerHTML = '<div class="loading">No hay registros aún</div>';
-                return;
-            }
-            
-            const sortedData = [...attendanceData].sort((a, b) => {
-                const dateA = new Date(a.fecha + 'T00:00:00');
-                const dateB = new Date(b.fecha + 'T00:00:00');
-                return dateB - dateA;
-            });
-            
-            let html = `<table><thead><tr><th>Alumno</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>`;
-            sortedData.forEach(record => {
-                const color = record.estado === 'presente' ? '#d4edda' : record.estado === 'ausente' ? '#f8d7da' : '#fff3cd';
-                const textColor = record.estado === 'presente' ? '#155724' : record.estado === 'ausente' ? '#721c24' : '#856404';
-                const icon = record.estado === 'presente' ? '✅' : record.estado === 'ausente' ? '❌' : '⏰';
-                
-                const dateObj = new Date(record.fecha + 'T00:00:00');
-                const fechaMostrar = !isNaN(dateObj.getTime()) 
-                    ? dateObj.toLocaleDateString('es', { year: 'numeric', month: 'short', day: 'numeric' }) 
-                    : record.fecha;
-                
-                html += `<tr>
-                    <td>${record.nombre}</td>
-                    <td>${fechaMostrar}</td>
-                    <td><span style="background: ${color}; color: ${textColor}; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.85rem;">${icon} ${record.estado}</span></td>
-                </tr>`;
-            });
-            html += '</tbody></table>';
-            historyTable.innerHTML = html;
-        }
     </script>
 </body>
 </html>

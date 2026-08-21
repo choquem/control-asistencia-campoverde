@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Asistencia</title>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div id="navbar"></div>
+
+        <div class="card">
+            <h2>✅ Registrar Asistencia</h2>
+            <div id="loadingStudents" class="loading">Cargando lista de alumnos...</div>
+            
+            <div id="registrationPanel" style="display: none;">
+                <div class="teacher-filters" id="teacherFilters">
+                    <label>👨‍🏫 Filtrar por:</label>
+                    <button class="filter-btn active" onclick="filterByTeacher('todos')"> Todos</button>
+                </div>
+                
+                <div class="date-display">
+                    <div>
+                        <label for="fecha">Fecha:</label>
+                        <input type="date" id="fecha">
+                    </div>
+                    <div class="current-date" id="currentDate"></div>
+                    <div class="student-count" id="studentCount"></div>
+                </div>
+                <div id="attendanceTable"></div>
+                <button class="btn btn-success" id="btnSave" onclick="saveAttendance()">💾 Guardar en Google Sheets</button>
+                <div id="saveMessage" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/registro.js"></script>
+</body>
+</html>
