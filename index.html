@@ -100,7 +100,6 @@
             font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        /* FILTROS DE MAESTRO - DINÁMICOS */
         .teacher-filters {
             display: flex;
             gap: 10px;
@@ -218,11 +217,9 @@
             <div id="loadingStudents" class="loading">Cargando lista de alumnos...</div>
             
             <div id="registrationPanel" style="display: none;">
-                <!-- FILTROS POR MAESTRO (DINÁMICOS) -->
                 <div class="teacher-filters" id="teacherFilters">
-                    <label>👨‍🏫 Filtrar por:</label>
+                    <label>👨🏫 Filtrar por:</label>
                     <button class="filter-btn active" onclick="filterByTeacher('todos')">📚 Todos</button>
-                    <!-- Los botones se generarán dinámicamente -->
                 </div>
                 
                 <div class="date-display">
@@ -241,7 +238,12 @@
         </div>
 
         <div class="card">
-            <h2> Resumen Semanal</h2>
+            <h2>📊 Resumen Semanal</h2>
+            <!-- Filtros de maestro para el resumen -->
+            <div class="teacher-filters" id="summaryTeacherFilters">
+                <label>👨‍ Filtrar resumen:</label>
+                <button class="filter-btn active" onclick="filterSummaryByTeacher('todos')">📚 Todos</button>
+            </div>
             <div class="week-selector" id="weekSelector"></div>
             <div class="week-range" id="weekRange"></div>
             <div id="weeklySummaryTable"></div>
@@ -257,21 +259,22 @@
         </div>
 
         <div class="card">
-            <h2> Historial de Asistencia</h2>
+            <h2>📝 Historial de Asistencia</h2>
             <div id="historyTable"></div>
         </div>
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbRCXWVKIVk9AFl65K0r2G5J_pOT4J56MuHCsrFOTwBYehR-9mOMkRpO2VGSP0Xck81g/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJsxDxyntHAi7U_m-YrEx4JTM6dfAPK04EmbITwXmLEQFM5KxZCY5-8EfhhNDJoiF7AA/exec';
         
-        let students = []; // Array de objetos: {nombre, maestro}
+        let students = [];
         let attendanceData = [];
         let selectedWeek = 0;
         let tempAttendance = {};
         let isSaving = false;
         let currentTeacherFilter = 'todos';
-        let uniqueTeachers = []; // Lista única de maestros
+        let summaryTeacherFilter = 'todos';
+        let uniqueTeachers = [];
 
         function normalizeDate(dateValue) {
             if (!dateValue) return '';
@@ -286,6 +289,47 @@
                 if (!isNaN(date.getTime())) return date.toISOString().split('T')[0];
             }
             return String(dateValue);
+        }
+
+        // ✅ NUEVA FUNCIÓN: Obtiene el mejor estado con prioridad
+        // Prioridad: presente > tardanza > ausente
+        function getBestStatus(records) {
+            if (!records || records.length === 0) return null;
+            
+            // Si hay al menos un "presente", ese es el mejor
+            if (records.some(r => r.estado === 'presente')) return 'presente';
+            // Si no hay presente pero hay tardanza
+            if (records.some(r => r.estado === 'tardanza')) return 'tardanza';
+            // Si solo hay ausentes
+            if (records.some(r => r.estado === 'ausente')) return 'ausente';
+            
+            return records[0].estado;
+        }
+
+        // ✅ NUEVA FUNCIÓN: Deduplica registros por alumno+fecha, manteniendo el mejor estado
+        function deduplicateAttendance(data) {
+            const grouped = {};
+            
+            data.forEach(record => {
+                const key = `${record.nombre}|${record.fecha}`;
+                if (!grouped[key]) {
+                    grouped[key] = [];
+                }
+                grouped[key].push(record);
+            });
+            
+            const deduplicated = [];
+            Object.keys(grouped).forEach(key => {
+                const records = grouped[key];
+                const bestStatus = getBestStatus(records);
+                deduplicated.push({
+                    nombre: records[0].nombre,
+                    fecha: records[0].fecha,
+                    estado: bestStatus
+                });
+            });
+            
+            return deduplicated;
         }
 
         document.getElementById('fecha').valueAsDate = new Date();
@@ -303,7 +347,6 @@
             document.getElementById('currentDate').textContent = date.toLocaleDateString('es', options);
         }
 
-        // Cargar alumnos desde CSV y extraer maestros únicos
         fetch('https://raw.githubusercontent.com/choquem/mi-primera-pagina/main/students.csv')
             .then(response => {
                 if (!response.ok) throw new Error('Error al cargar CSV');
@@ -314,7 +357,6 @@
                 students = [];
                 const teachersSet = new Set();
                 
-                // Detectar columna de maestro
                 const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
                 const maestroIndex = headers.findIndex(h => h.includes('maestro') || h.includes('curso') || h.includes('teacher') || h.includes('profesor'));
                 
@@ -331,11 +373,10 @@
                     }
                 }
                 
-                // Convertir Set a array ordenado
                 uniqueTeachers = Array.from(teachersSet).sort();
                 
-                // Generar botones de filtro dinámicamente
-                generateTeacherFilters();
+                generateTeacherFilters('teacherFilters', filterByTeacher);
+                generateTeacherFilters('summaryTeacherFilters', filterSummaryByTeacher);
                 
                 document.getElementById('loadingStudents').style.display = 'none';
                 document.getElementById('registrationPanel').style.display = 'block';
@@ -350,42 +391,44 @@
                 `;
             });
 
-        // Generar botones de filtro automáticamente
-        function generateTeacherFilters() {
-            const container = document.getElementById('teacherFilters');
+        // ✅ FUNCIÓN REUTILIZABLE para generar filtros
+        function generateTeacherFilters(containerId, callback) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '<label>👨‍🏫 Filtrar:</label><button class="filter-btn active" onclick="filterByTeacher(\'todos\')">📚 Todos</button>';
             
-            // Mantener solo el botón "Todos" y el label
-            container.innerHTML = '<label>👨‍🏫 Filtrar por:</label><button class="filter-btn active" onclick="filterByTeacher(\'todos\')">📚 Todos</button>';
-            
-            // Agregar un botón por cada maestro único
             uniqueTeachers.forEach(teacher => {
                 const btn = document.createElement('button');
                 btn.className = 'filter-btn';
                 btn.textContent = teacher;
-                btn.onclick = () => filterByTeacher(teacher);
+                btn.onclick = () => callback(teacher);
                 container.appendChild(btn);
             });
         }
 
-        // Función para filtrar por maestro
         function filterByTeacher(teacher) {
             currentTeacherFilter = teacher;
-            
-            // Actualizar botones visualmente
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (teacher === 'todos' && btn.textContent.includes('Todos')) {
-                    btn.classList.add('active');
-                } else if (btn.textContent === teacher) {
-                    btn.classList.add('active');
-                }
-            });
-            
+            updateFilterButtons('teacherFilters', teacher);
             updateStudentCount();
             renderAttendanceTable();
         }
 
-        // Actualizar contador de alumnos visibles
+        function filterSummaryByTeacher(teacher) {
+            summaryTeacherFilter = teacher;
+            updateFilterButtons('summaryTeacherFilters', teacher);
+            renderWeeklySummary();
+        }
+
+        function updateFilterButtons(containerId, activeTeacher) {
+            document.querySelectorAll(`#${containerId} .filter-btn`).forEach(btn => {
+                btn.classList.remove('active');
+                if (activeTeacher === 'todos' && btn.textContent.includes('Todos')) {
+                    btn.classList.add('active');
+                } else if (btn.textContent === activeTeacher) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
         function updateStudentCount() {
             const filteredStudents = currentTeacherFilter === 'todos' 
                 ? students 
@@ -397,24 +440,36 @@
             showSyncStatus('Sincronizando...', 'syncing');
             
             fetch(GOOGLE_SCRIPT_URL)
-                .then(response => response.json())
-                .then(result => {
-                    if (result.result === 'success') {
-                        attendanceData = (result.data || []).map(record => ({
-                            fecha: normalizeDate(record.fecha),
-                            nombre: String(record.nombre).trim(),
-                            estado: String(record.estado).trim()
-                        }));
-                        
-                        showSyncStatus('✅ Sincronizado', 'connected');
-                        renderWeekSelector();
-                        renderWeeklySummary();
-                        renderHistory();
+                .then(response => response.text())
+                .then(text => {
+                    try {
+                        const result = JSON.parse(text);
+                        if (result.result === 'success') {
+                            // ✅ DEDUPLICAR al cargar
+                            attendanceData = deduplicateAttendance(
+                                (result.data || []).map(record => ({
+                                    fecha: normalizeDate(record.fecha),
+                                    nombre: String(record.nombre).trim(),
+                                    estado: String(record.estado).trim()
+                                }))
+                            );
+                            
+                            showSyncStatus('✅ Sincronizado', 'connected');
+                            renderWeekSelector();
+                            renderWeeklySummary();
+                            renderHistory();
+                        } else {
+                            console.error('Error del servidor:', result);
+                            showSyncStatus('❌ Error del servidor', 'error');
+                        }
+                    } catch (e) {
+                        console.error('Error al parsear:', e);
+                        showSyncStatus('❌ Error de formato', 'error');
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    showSyncStatus(' Error de red', 'error');
+                    console.error('Error de red:', error);
+                    showSyncStatus('❌ Error de red', 'error');
                 });
         }
 
@@ -429,7 +484,6 @@
                 });
             }
 
-            // Filtrar alumnos por maestro
             const filteredStudents = currentTeacherFilter === 'todos' 
                 ? students 
                 : students.filter(s => s.maestro === currentTeacherFilter);
@@ -456,7 +510,7 @@
                             </button>
                             <button class="status-btn tardanza ${currentState === 'tardanza' ? 'active' : ''}" 
                                     onclick="setStatus('${student.nombre}', 'tardanza')">
-                                <span class="icon"></span>
+                                <span class="icon">⏰</span>
                                 <span>Tardanza</span>
                             </button>
                         </div>
@@ -502,12 +556,9 @@
             btnSave.textContent = '⏳ Guardando...';
             showSyncStatus('Guardando...', 'syncing');
 
-            attendanceData = attendanceData.filter(r => r.fecha !== fecha);
-            
             const newRecords = [];
             validEntries.forEach(student => {
                 const record = { nombre: student, fecha: fecha, estado: tempAttendance[student] };
-                attendanceData.push(record);
                 newRecords.push(record);
             });
 
@@ -522,9 +573,8 @@
                     await new Promise(resolve => setTimeout(resolve, 300));
                 }
                 
-                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
                 showSyncStatus('✅ Guardado', 'connected');
-                document.getElementById('saveMessage').innerHTML = `<div class="success">✅ ${newRecords.length} registros guardados</div>`;
+                document.getElementById('saveMessage').innerHTML = `<div class="success">✅ ${newRecords.length} registros guardados/actualizados</div>`;
                 setTimeout(() => { document.getElementById('saveMessage').innerHTML = ''; }, 3000);
                 
                 setTimeout(() => { loadAttendanceFromSheet(); }, 1000);
@@ -593,22 +643,33 @@
             
             document.getElementById('weekRange').textContent = `📆 ${firstDay.fullDate} - ${lastDay.fullDate} (${firstDay.name} a ${lastDay.name})`;
 
+            // ✅ Filtrar alumnos por maestro para el resumen
+            const filteredStudents = summaryTeacherFilter === 'todos' 
+                ? students 
+                : students.filter(s => s.maestro === summaryTeacherFilter);
+
             let html = `<table class="summary-table"><thead><tr><th>Alumno</th>`;
             days.forEach(day => {
                 html += `<th><div class="day-header">${day.name}</div><div class="date-sub">${day.fullDate}</div></th>`;
             });
             html += `</tr></thead><tbody>`;
 
-            students.forEach((student, index) => {
+            filteredStudents.forEach((student, index) => {
                 html += `<tr><td>${index + 1}. ${student.nombre}</td>`;
                 days.forEach(day => {
-                    const record = attendanceData.find(r => r.nombre === student.nombre && r.fecha === day.date);
+                    // ✅ Buscar TODOS los registros del alumno en ese día
+                    const allRecords = attendanceData.filter(r => 
+                        r.nombre === student.nombre && r.fecha === day.date
+                    );
+                    
+                    // ✅ Obtener el mejor estado (prioridad: presente > tardanza > ausente)
+                    const bestStatus = getBestStatus(allRecords);
+                    
                     let cellContent = '<span style="color: #ccc;">—</span>';
-                    if (record) {
-                        if (record.estado === 'presente') cellContent = '✅';
-                        else if (record.estado === 'ausente') cellContent = '❌';
-                        else if (record.estado === 'tardanza') cellContent = '⏰';
-                    }
+                    if (bestStatus === 'presente') cellContent = '✅';
+                    else if (bestStatus === 'ausente') cellContent = '❌';
+                    else if (bestStatus === 'tardanza') cellContent = '';
+                    
                     html += `<td>${cellContent}</td>`;
                 });
                 html += `</tr>`;
@@ -616,8 +677,16 @@
             html += '</tbody></table>';
             document.getElementById('weeklySummaryTable').innerHTML = html;
 
+            // ✅ Calcular estadísticas solo de los alumnos filtrados
             const weekDates = days.map(d => d.date);
-            const weekData = attendanceData.filter(r => weekDates.includes(r.fecha));
+            const weekData = attendanceData.filter(r => {
+                const isInWeek = weekDates.includes(r.fecha);
+                const isInFilter = summaryTeacherFilter === 'todos' 
+                    ? true 
+                    : filteredStudents.some(s => s.nombre === r.nombre);
+                return isInWeek && isInFilter;
+            });
+            
             const total = weekData.length;
             const presentes = weekData.filter(r => r.estado === 'presente').length;
             const ausentes = weekData.filter(r => r.estado === 'ausente').length;
