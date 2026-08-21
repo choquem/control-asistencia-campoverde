@@ -2,12 +2,111 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Prueba</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Asistencia - Iniciar Sesión</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-container {
+            max-width: 450px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .login-container h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .form-group input:focus { outline: none; border-color: #667eea; }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #00b894;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #00a383;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,184,148,0.3);
+        }
+        .message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .message.error { background: #f8d7da; color: #721c24; }
+        .message.success { background: #d4edda; color: #155724; }
+        .credentials-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        .credentials-info h3 { color: #667eea; margin-bottom: 10px; font-size: 0.95rem; }
+        .credentials-info p { margin: 5px 0; color: #666; }
+        .credentials-info code {
+            background: #e0e0e0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
 </head>
 <body>
-    <h1 style="color: red; text-align: center; margin-top: 50px; font-size: 3rem;">
-        ¡FUNCIONA! GitHub Pages está activo.
-    </h1>
-    <p style="text-align: center; font-size: 1.5rem;">Si ves esto, el problema era el código anterior.</p>
-</body>
-</html>
+    <div class="login-container">
+        <h1> Iniciar Sesión</h1>
+        
+        <div class="form-group">
+            <label for="username">Usuario:</label>
+            <input type="text" id="username" placeholder="Ingresa tu usuario">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" placeholder="Ingresa tu contraseña">
+        </div>
+        
+        <button class="btn" onclick="handleLogin()">Ingresar</button>
+        
+        <div id="loginMessage"></div>
+        
+        <div class="credentials-info">
+            <h3>📋 Credenciales de acceso:</h3>
+            <p><strong>Administrador:</strong> <code>admin</code> / <code>admin123</code></p>
+            <p><strong>Invitado:</strong> <code>invitado</code> / <code>invitado123</code></p>
+        </div>
+    </div>
