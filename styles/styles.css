@@ -290,7 +290,7 @@ tr:hover { background: #f8f9fa; }
     .status-buttons { flex-direction: column; }
     .status-btn { width: 100%; min-width: auto; justify-content: flex-start; padding-left: 15px; }
     
-    /* Tabla de reporte semanal - con scroll horizontal */
+    /* Tabla de reporte semanal */
     .table-responsive {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
@@ -300,21 +300,23 @@ tr:hover { background: #f8f9fa; }
     
     .summary-table {
         font-size: 0.75rem;
-        min-width: 480px;
+        width: 100%;
+        table-layout: fixed; /* ✅ Fuerza el uso de anchos definidos */
     }
     
     .summary-table th,
     .summary-table td {
-        padding: 5px 3px;
+        padding: 4px 2px;
         white-space: normal;
         vertical-align: middle;
     }
     
-    /* ✅ COLUMNA DE NOMBRE - Más estrecha, texto en varias líneas */
+    /* ✅ COLUMNA DE NOMBRE - 33% del ancho */
     .summary-table th:first-child,
     .summary-table td:first-child {
-        min-width: 80px;      /* ✅ Reducido de 110px a 80px */
-        max-width: 90px;      /* ✅ Limita el ancho máximo */
+        width: 33%;
+        min-width: 33%;
+        max-width: 33%;
         position: sticky;
         left: 0;
         background: white;
@@ -324,10 +326,11 @@ tr:hover { background: #f8f9fa; }
         overflow-wrap: break-word;
         line-height: 1.2;
         text-align: left;
+        padding: 4px 3px;
     }
     
     .summary-table td:first-child {
-        font-size: 0.7rem;    /* ✅ Más pequeño para que quepa mejor */
+        font-size: 0.7rem;
         font-weight: 600;
     }
     
@@ -335,11 +338,13 @@ tr:hover { background: #f8f9fa; }
         font-size: 0.7rem;
     }
     
-    /* ✅ COLUMNAS DE DÍAS - Más espacio */
+    /* ✅ COLUMNAS DE DÍAS - 67% restante dividido entre 5 */
     .summary-table th:not(:first-child),
     .summary-table td:not(:first-child) {
-        min-width: 55px;      /* ✅ Espacio para las fechas */
-        width: 55px;
+        width: 13.4%; /* 67% / 5 días */
+        min-width: 13.4%;
+        max-width: 13.4%;
+        text-align: center;
     }
     
     .summary-table .day-header { 
@@ -351,7 +356,7 @@ tr:hover { background: #f8f9fa; }
         opacity: 0.8;
     }
     .summary-table td:not(:first-child) { 
-        font-size: 1.1rem; 
+        font-size: 1rem; 
     }
     
     /* Filtros */
