@@ -290,4 +290,37 @@ tr:hover { background: #f8f9fa; }
     .filter-btn { width: 100%; }
     .navbar { flex-direction: column; text-align: center; }
     .nav-links { justify-content: center; }
+    
+    /* ✅ AGREGA ESTAS LÍNEAS NUEVAS: */
+    
+    /* Scroll horizontal para la tabla */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .summary-table {
+        min-width: 500px;
+    }
+    
+    .summary-table th:first-child,
+    .summary-table td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 1;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+    
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stat-mini {
+        padding: 10px;
+    }
+    
+    .stat-mini .num {
+        font-size: 1.3rem;
+    }
 }
