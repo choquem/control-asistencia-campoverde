@@ -276,51 +276,79 @@ tr:hover { background: #f8f9fa; }
     gap: 8px;
 }
 
+/* ============================================
+   RESPONSIVE - MÓVIL (REEMPLAZA EL ANTERIOR)
+   ============================================ */
 @media (max-width: 768px) {
-    h1 { font-size: 1.6rem; }
+    h1 { font-size: 1.4rem; }
     .card { padding: 15px; }
+    .card h2 { font-size: 1.2rem; }
+    
+    /* Tabla de registro */
     table { font-size: 0.85rem; }
     th, td { padding: 8px; }
     .status-buttons { flex-direction: column; }
     .status-btn { width: 100%; min-width: auto; justify-content: flex-start; padding-left: 15px; }
-    .summary-table { font-size: 0.8rem; }
-    .summary-table td { font-size: 1rem; padding: 6px 4px; }
-    .summary-table td:first-child { font-size: 0.8rem; min-width: 120px; }
-    .teacher-filters { flex-direction: column; align-items: stretch; }
-    .filter-btn { width: 100%; }
-    .navbar { flex-direction: column; text-align: center; }
-    .nav-links { justify-content: center; }
     
-    /* ✅ AGREGA ESTAS LÍNEAS NUEVAS: */
-    
-    /* Scroll horizontal para la tabla */
+    /* Tabla de reporte semanal - con scroll horizontal */
     .table-responsive {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        margin: 10px 0;
     }
     
     .summary-table {
-        min-width: 500px;
+        font-size: 0.75rem;
+        min-width: 480px;
+    }
+    
+    .summary-table th,
+    .summary-table td {
+        padding: 6px 4px;
     }
     
     .summary-table th:first-child,
     .summary-table td:first-child {
+        min-width: 110px;
         position: sticky;
         left: 0;
         background: white;
-        z-index: 1;
-        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        z-index: 2;
+        box-shadow: 2px 0 4px rgba(0,0,0,0.1);
     }
     
-    .stats-row {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .summary-table .day-header { font-size: 0.7rem; }
+    .summary-table .date-sub { font-size: 0.6rem; }
+    .summary-table td { font-size: 1rem; }
     
-    .stat-mini {
-        padding: 10px;
-    }
+    /* Filtros */
+    .teacher-filters { flex-direction: column; align-items: stretch; gap: 8px; }
+    .teacher-filters label { margin-right: 0; margin-bottom: 5px; }
+    .filter-btn { width: 100%; text-align: center; }
     
-    .stat-mini .num {
-        font-size: 1.3rem;
-    }
+    /* Selector de semanas */
+    .week-selector { flex-wrap: wrap; gap: 6px; }
+    .week-btn { flex: 1; min-width: 100px; text-align: center; font-size: 0.8rem; padding: 6px 10px; }
+    
+    /* Estadísticas */
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat-mini { padding: 10px; }
+    .stat-mini .num { font-size: 1.2rem; }
+    .stat-mini .lbl { font-size: 0.75rem; }
+    
+    /* Navegación */
+    .navbar { flex-direction: column; text-align: center; padding: 12px; }
+    .nav-links { justify-content: center; flex-wrap: wrap; gap: 8px; }
+    .nav-link { font-size: 0.85rem; padding: 6px 12px; }
+    .btn-logout { font-size: 0.85rem; padding: 6px 12px; }
+    
+    /* Fecha y contador */
+    .date-display { flex-direction: column; align-items: stretch; gap: 10px; }
+    .current-date { font-size: 0.95rem; text-align: center; }
+    .student-count { align-self: center; }
+    
+    /* Barra de progreso */
+    .progress-bar { height: 20px; }
+    .progress-fill { font-size: 0.75rem; }
 }
