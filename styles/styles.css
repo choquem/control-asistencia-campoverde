@@ -280,9 +280,9 @@ tr:hover { background: #f8f9fa; }
    RESPONSIVE - MÓVIL (REEMPLAZA EL ANTERIOR)
    ============================================ */
 @media (max-width: 768px) {
-    h1 { font-size: 1.4rem; }
-    .card { padding: 15px; }
-    .card h2 { font-size: 1.2rem; }
+    h1 { font-size: 1.3rem; margin-bottom: 15px; }
+    .card { padding: 10px; }
+    .card h2 { font-size: 1.1rem; margin-bottom: 15px; }
     
     /* Tabla de registro */
     table { font-size: 0.85rem; }
@@ -295,13 +295,15 @@ tr:hover { background: #f8f9fa; }
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         border-radius: 8px;
-        margin: 10px 0;
+        margin: 5px 0;
+        width: 100%;
     }
     
     .summary-table {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         width: 100%;
-        table-layout: fixed; /* ✅ Fuerza el uso de anchos definidos */
+        table-layout: fixed;
+        border-collapse: collapse;
     }
     
     .summary-table th,
@@ -309,83 +311,95 @@ tr:hover { background: #f8f9fa; }
         padding: 4px 2px;
         white-space: normal;
         vertical-align: middle;
+        border: none;
     }
     
-    /* ✅ COLUMNA DE NOMBRE - 33% del ancho */
+    /* COLUMNA DE NOMBRE - 30% */
     .summary-table th:first-child,
     .summary-table td:first-child {
-        width: 33%;
-        min-width: 33%;
-        max-width: 33%;
+        width: 30%;
         position: sticky;
         left: 0;
         background: white;
         z-index: 2;
-        box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+        box-shadow: 2px 0 3px rgba(0,0,0,0.08);
         word-wrap: break-word;
         overflow-wrap: break-word;
         line-height: 1.2;
         text-align: left;
-        padding: 4px 3px;
+        padding: 4px 6px;
     }
     
     .summary-table td:first-child {
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 600;
     }
     
     .summary-table th:first-child {
-        font-size: 0.7rem;
+        font-size: 0.72rem;
     }
     
-    /* ✅ COLUMNAS DE DÍAS - 67% restante dividido entre 5 */
+    /* COLUMNAS DE DÍAS - 14% cada una */
     .summary-table th:not(:first-child),
     .summary-table td:not(:first-child) {
-        width: 13.4%; /* 67% / 5 días */
-        min-width: 13.4%;
-        max-width: 13.4%;
+        width: 14%;
         text-align: center;
+        padding: 4px 1px;
     }
     
     .summary-table .day-header { 
-        font-size: 0.7rem; 
+        font-size: 0.65rem; 
         font-weight: 700;
+        line-height: 1.1;
     }
     .summary-table .date-sub { 
-        font-size: 0.6rem; 
-        opacity: 0.8;
-    }
-    .summary-table td:not(:first-child) { 
-        font-size: 1rem; 
+        font-size: 0.55rem; 
+        opacity: 0.7;
+        line-height: 1;
     }
     
-    /* Filtros */
-    .teacher-filters { flex-direction: column; align-items: stretch; gap: 8px; }
-    .teacher-filters label { margin-right: 0; margin-bottom: 5px; }
-    .filter-btn { width: 100%; text-align: center; }
+    /* ✅ ICONOS PEQUEÑOS - Esto es clave */
+    .summary-table td:not(:first-child) {
+        font-size: 0.7rem; /* Reduce los emojis/iconos */
+        line-height: 1;
+    }
     
-    /* Selector de semanas */
-    .week-selector { flex-wrap: wrap; gap: 6px; }
-    .week-btn { flex: 1; min-width: 100px; text-align: center; font-size: 0.8rem; padding: 6px 10px; }
+    /* Si los iconos son imágenes, forzar tamaño pequeño */
+    .summary-table td:not(:first-child) img,
+    .summary-table td:not(:first-child) .icon {
+        width: 18px !important;
+        height: 18px !important;
+        max-width: 18px !important;
+    }
+    
+    /* Filtros y controles */
+    .teacher-filters { flex-direction: column; align-items: stretch; gap: 6px; margin-bottom: 15px; }
+    .teacher-filters label { margin-right: 0; margin-bottom: 3px; font-size: 0.85rem; }
+    .filter-btn { width: 100%; text-align: center; padding: 6px; font-size: 0.85rem; }
+    
+    .week-selector { flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+    .week-btn { flex: 1; min-width: 90px; text-align: center; font-size: 0.75rem; padding: 5px 8px; }
+    
+    .week-range { font-size: 0.8rem; padding: 8px 10px; margin-bottom: 10px; }
     
     /* Estadísticas */
-    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .stat-mini { padding: 10px; }
-    .stat-mini .num { font-size: 1.2rem; }
-    .stat-mini .lbl { font-size: 0.75rem; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 15px; }
+    .stat-mini { padding: 8px; }
+    .stat-mini .num { font-size: 1.1rem; }
+    .stat-mini .lbl { font-size: 0.7rem; }
     
     /* Navegación */
-    .navbar { flex-direction: column; text-align: center; padding: 12px; }
-    .nav-links { justify-content: center; flex-wrap: wrap; gap: 8px; }
-    .nav-link { font-size: 0.85rem; padding: 6px 12px; }
-    .btn-logout { font-size: 0.85rem; padding: 6px 12px; }
+    .navbar { flex-direction: column; text-align: center; padding: 10px; gap: 10px; }
+    .nav-links { justify-content: center; flex-wrap: wrap; gap: 6px; }
+    .nav-link { font-size: 0.8rem; padding: 5px 10px; }
+    .btn-logout { font-size: 0.8rem; padding: 5px 10px; }
     
     /* Fecha y contador */
-    .date-display { flex-direction: column; align-items: stretch; gap: 10px; }
-    .current-date { font-size: 0.95rem; text-align: center; }
-    .student-count { align-self: center; }
+    .date-display { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px; }
+    .current-date { font-size: 0.9rem; text-align: center; }
+    .student-count { align-self: center; font-size: 0.75rem; padding: 4px 10px; }
     
     /* Barra de progreso */
-    .progress-bar { height: 20px; }
-    .progress-fill { font-size: 0.75rem; }
+    .progress-bar { height: 18px; margin-top: 10px; }
+    .progress-fill { font-size: 0.7rem; }
 }
