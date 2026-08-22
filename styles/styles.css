@@ -428,3 +428,23 @@ tr:hover { background: #f8f9fa; }
     .progress-bar { height: 18px; margin-top: 10px; }
     .progress-fill { font-size: 0.7rem; }
 }
+/* ============================================
+   COLUMNA DE PORCENTAJE EN MÓVIL - MÁS PEQUEÑA
+   ============================================ */
+@media (max-width: 768px) {
+    .summary-table td:last-child {
+        font-size: 0.65rem !important;
+        padding: 3px 2px !important;
+    }
+    
+    .summary-table td:last-child strong {
+        font-size: 0.7rem !important;
+        display: block;
+        line-height: 1.1;
+    }
+    
+    .summary-table td:last-child small {
+        font-size: 0.55rem !important;
+        line-height: 1;
+    }
+}
