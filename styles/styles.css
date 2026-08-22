@@ -448,3 +448,26 @@ tr:hover { background: #f8f9fa; }
         line-height: 1;
     }
 }
+
+/* ============================================
+   BOTONES DE FILTRO POR COLOR
+   ============================================ */
+.color-filter-btn {
+    font-weight: 700;
+    border-width: 2px;
+}
+
+.color-filter-btn.active {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* En móvil, apilar los botones */
+@media (max-width: 768px) {
+    .color-filter-btn {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+        flex: 1;
+        min-width: 80px;
+    }
+}
