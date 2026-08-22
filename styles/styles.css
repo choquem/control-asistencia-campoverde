@@ -372,31 +372,6 @@ tr:hover { background: #f8f9fa; }
         max-width: 18px !important;
     }
 
-/* ============================================
-   COLUMNA DE ASISTENCIA INDIVIDUAL
-   ============================================ */
-.attendance-cell {
-    text-align: center;
-    font-weight: 700;
-    font-size: 0.9rem;
-    padding: 8px 12px;
-}
-
-.attendance-cell.high {
-    background: #d4edda;
-    color: #155724;
-}
-
-.attendance-cell.medium {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.attendance-cell.low {
-    background: #f8d7da;
-    color: #721c24;
-}
-
 /* En móvil, ajustar la columna de asistencia */
 @media (max-width: 768px) {
     .attendance-cell {
@@ -440,4 +415,49 @@ tr:hover { background: #f8f9fa; }
     /* Barra de progreso */
     .progress-bar { height: 18px; margin-top: 10px; }
     .progress-fill { font-size: 0.7rem; }
+}
+
+/* ============================================
+   COLORES DE ASISTENCIA INDIVIDUAL
+   ============================================ */
+.attendance-cell {
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 6px 4px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+/* Verde: >= 75% */
+.attendance-cell.high {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+/* Amarillo: 50-74% */
+.attendance-cell.medium {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+/* Rojo: < 50% */
+.attendance-cell.low {
+    background-color: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+/* Para móvil */
+@media (max-width: 768px) {
+    .attendance-cell {
+        font-size: 0.7rem;
+        padding: 4px 2px;
+        min-width: 50px;
+    }
+    
+    .attendance-cell small {
+        font-size: 0.6rem;
+        display: block;
+        margin-top: 2px;
+    }
 }
