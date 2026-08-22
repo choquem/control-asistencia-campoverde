@@ -80,13 +80,37 @@ function renderWeeklySummary() {
 
     const filteredStudents = summaryTeacherFilter === 'todos' ? students : students.filter(s => s.maestro === summaryTeacherFilter);
 
+    // TABLA NORMAL (para desktop)
     let html = `<table class="summary-table"><thead><tr><th>Alumno</th>`;
     days.forEach(day => {
         html += `<th><div class="day-header">${day.name}</div><div class="date-sub">${day.fullDate}</div></th>`;
     });
-    html += `</tr></thead><tbody>`;
+    html += `<th>Asistencia</th></tr></thead><tbody>`;
 
     filteredStudents.forEach((student, index) => {
+        // Calcular asistencia individual
+        let diasAsistidos = 0;
+        let diasTotales = 0;
+        
+        days.forEach(day => {
+            const allRecords = attendanceData.filter(r => r.nombre === student.nombre && r.fecha === day.date);
+            const bestStatus = getBestStatus(allRecords);
+            
+            if (bestStatus) {
+                diasTotales++;
+                if (bestStatus === 'presente' || bestStatus === 'tardanza') {
+                    diasAsistidos++;
+                }
+            }
+        });
+        
+        const porcentaje = diasTotales > 0 ? Math.round((diasAsistidos / diasTotales) * 100) : 0;
+        
+        // Color según porcentaje
+        let colorClase = 'low';
+        if (porcentaje >= 75) colorClase = 'high';
+        else if (porcentaje >= 55) colorClase = 'medium';
+        
         html += `<tr><td>${index + 1}. ${student.nombre}</td>`;
         days.forEach(day => {
             const allRecords = attendanceData.filter(r => r.nombre === student.nombre && r.fecha === day.date);
@@ -99,11 +123,15 @@ function renderWeeklySummary() {
             
             html += `<td>${cellContent}</td>`;
         });
+        
+        // Columna de porcentaje
+        html += `<td class="attendance-cell ${colorClase}"><strong>${porcentaje}%</strong></td>`;
         html += `</tr>`;
     });
     html += '</tbody></table>';
     document.getElementById('weeklySummaryTable').innerHTML = html;
 
+    // Estadísticas generales
     const weekDates = days.map(d => d.date);
     const weekData = attendanceData.filter(r => {
         const isInWeek = weekDates.includes(r.fecha);
@@ -123,8 +151,5 @@ function renderWeeklySummary() {
         <div class="stat-mini" style="background: linear-gradient(135deg, #fdcb6e, #e17055);"><div class="num">${tardanzas}</div><div class="lbl">⏰ Tardanzas</div></div>
         <div class="stat-mini" style="background: linear-gradient(135deg, #e74c3c, #fd79a8);"><div class="num">${ausentes}</div><div class="lbl">❌ Ausentes</div></div>
     `;
-
-    const progressFill = document.getElementById('progressFill');
-    progressFill.style.width = porcentaje + '%';
-    progressFill.textContent = porcentaje + '%';
+   progressFill.textContent = porcentaje + '%';
 }
