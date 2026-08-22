@@ -6,7 +6,7 @@ let students = [];
 let attendanceData = [];
 let selectedWeek = 0;
 let summaryTeacherFilter = 'todos';
-
+let attendanceColorFilter = 'todos'; // ✅ NUEVO: Filtro por color
 // Verificar autenticación al cargar
 if (!checkAuth()) {
     // Si no hay sesión, ya fue redirigido por checkAuth()
@@ -80,7 +80,7 @@ function renderWeeklySummary() {
 
     const filteredStudents = summaryTeacherFilter === 'todos' ? students : students.filter(s => s.maestro === summaryTeacherFilter);
 
-    // TABLA NORMAL (para desktop)
+    // TABLA CON FILTROS DE COLOR
     let html = `<table class="summary-table"><thead><tr><th>Alumno</th>`;
     days.forEach(day => {
         html += `<th><div class="day-header">${day.name}</div><div class="date-sub">${day.fullDate}</div></th>`;
@@ -106,15 +106,23 @@ function renderWeeklySummary() {
         
         const porcentaje = totalDias > 0 ? Math.round((totalAsistencias / totalDias) * 100) : 0;
         
-        // ✅ COLORES INLINE - Se aplican siempre
-        let bgColor = '#dc3545'; // Rojo por defecto
+        // ✅ APLICAR FILTRO POR COLOR
+        let mostrarAlumno = true;
+        if (attendanceColorFilter === 'verde' && porcentaje < 75) mostrarAlumno = false;
+        if (attendanceColorFilter === 'amarillo' && (porcentaje < 50 || porcentaje >= 75)) mostrarAlumno = false;
+        if (attendanceColorFilter === 'rojo' && porcentaje >= 50) mostrarAlumno = false;
+        
+        if (!mostrarAlumno) return; // Saltar este alumno si no coincide con el filtro
+        
+        // COLORES INLINE
+        let bgColor = '#dc3545';
         let textColor = '#ffffff';
         
         if (porcentaje >= 75) {
-            bgColor = '#28a745'; // Verde
+            bgColor = '#28a745';
             textColor = '#ffffff';
         } else if (porcentaje >= 50) {
-            bgColor = '#ffc107'; // Amarillo
+            bgColor = '#ffc107';
             textColor = '#212529';
         }
         
@@ -132,7 +140,7 @@ function renderWeeklySummary() {
             html += `<td>${cellContent}</td>`;
         });
         
-        // ✅ COLUMNA DE PORCENTAJE CON ESTILOS INLINE
+        // COLUMNA DE PORCENTAJE
         html += `<td style="background-color: ${bgColor} !important; color: ${textColor} !important; text-align: center; font-weight: 700; font-size: 0.9rem; padding: 8px 6px; border-radius: 4px;">
             <strong style="font-size: 1rem;">${porcentaje}%</strong>
             <br>
@@ -155,16 +163,16 @@ function renderWeeklySummary() {
     const presentes = weekData.filter(r => r.estado === 'presente').length;
     const ausentes = weekData.filter(r => r.estado === 'ausente').length;
     const tardanzas = weekData.filter(r => r.estado === 'tardanza').length;
-    const porcentaje = total > 0 ? Math.round(((presentes + tardanzas) / total) * 100) : 0;
+    const porcentajeGeneral = total > 0 ? Math.round(((presentes + tardanzas) / total) * 100) : 0;
 
     document.getElementById('statsRow').innerHTML = `
         <div class="stat-mini" style="background: linear-gradient(135deg, #667eea, #764ba2);"><div class="num">${total}</div><div class="lbl">Total</div></div>
         <div class="stat-mini" style="background: linear-gradient(135deg, #00b894, #00cec9);"><div class="num">${presentes}</div><div class="lbl">✅ Presentes</div></div>
-        <div class="stat-mini" style="background: linear-gradient(135deg, #fdcb6e, #e17055);"><div class="num">${tardanzas}</div><div class="lbl"> Tardanzas</div></div>
+        <div class="stat-mini" style="background: linear-gradient(135deg, #fdcb6e, #e17055);"><div class="num">${tardanzas}</div><div class="lbl">⏰ Tardanzas</div></div>
         <div class="stat-mini" style="background: linear-gradient(135deg, #e74c3c, #fd79a8);"><div class="num">${ausentes}</div><div class="lbl">❌ Ausentes</div></div>
     `;
 
     const progressFill = document.getElementById('progressFill');
-    progressFill.style.width = porcentaje + '%';
-    progressFill.textContent = porcentaje + '%';
+    progressFill.style.width = porcentajeGeneral + '%';
+    progressFill.textContent = porcentajeGeneral + '%';
 }
