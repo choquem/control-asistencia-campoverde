@@ -19,7 +19,7 @@
                 <button class="filter-btn active" onclick="filterSummaryByTeacher('todos')">📚 Todos</button>
             </div>
 
-            <!-- ✅ NUEVOS: Filtros por color de asistencia -->
+            <!-- Filtros por color de asistencia -->
             <div class="teacher-filters" style="margin-top: 15px; border-top: 1px solid #e0e0e0; padding-top: 15px;">
                 <label>🎨 Filtrar por asistencia:</label>
                 <button class="filter-btn color-filter-btn active" data-color="todos" onclick="filterByAttendanceColor('todos')">
@@ -36,5 +36,32 @@
                 </button>
             </div>
 
+            <!-- Selector de semanas -->
             <div class="week-selector" id="weekSelector"></div>
-            <div class="week-range" id="weekRange">
+            
+            <!-- Rango de fechas -->
+            <div class="week-range" id="weekRange"></div>
+            
+            <!-- Tabla de resumen -->
+            <div class="table-responsive">
+                <div id="weeklySummaryTable"></div>
+            </div>
+            
+            <!-- Estadísticas -->
+            <div class="stats-row" id="statsRow"></div>
+            
+            <!-- Barra de progreso -->
+            <div style="margin-top: 20px;">
+                <label style="margin-bottom: 10px; display: block; font-weight: 600;">Porcentaje de Asistencia General:</label>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/reporte.js"></script>
+</body>
+</html>
