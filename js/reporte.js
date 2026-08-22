@@ -85,10 +85,10 @@ function renderWeeklySummary() {
     days.forEach(day => {
         html += `<th><div class="day-header">${day.name}</div><div class="date-sub">${day.fullDate}</div></th>`;
     });
-    html += `<th>Total</th></tr></thead><tbody>`;
+    html += `<th style="background: #667eea; color: white; padding: 10px 8px;">Total</th></tr></thead><tbody>`;
 
     filteredStudents.forEach((student, index) => {
-        // Calcular asistencia individual - TOTAL HISTÓRICO (TODOS los días)
+        // Calcular asistencia individual - TOTAL HISTÓRICO
         const registrosAlumno = attendanceData.filter(r => r.nombre === student.nombre);
         const fechasUnicas = [...new Set(registrosAlumno.map(r => r.fecha))];
         
@@ -106,10 +106,17 @@ function renderWeeklySummary() {
         
         const porcentaje = totalDias > 0 ? Math.round((totalAsistencias / totalDias) * 100) : 0;
         
-        // Color según porcentaje
-        let colorClase = 'low';
-        if (porcentaje >= 75) colorClase = 'high';
-        else if (porcentaje >= 50) colorClase = 'medium';
+        // ✅ COLORES INLINE - Se aplican siempre
+        let bgColor = '#dc3545'; // Rojo por defecto
+        let textColor = '#ffffff';
+        
+        if (porcentaje >= 75) {
+            bgColor = '#28a745'; // Verde
+            textColor = '#ffffff';
+        } else if (porcentaje >= 50) {
+            bgColor = '#ffc107'; // Amarillo
+            textColor = '#212529';
+        }
         
         // Mostrar días de la semana
         html += `<tr><td>${index + 1}. ${student.nombre}</td>`;
@@ -125,8 +132,12 @@ function renderWeeklySummary() {
             html += `<td>${cellContent}</td>`;
         });
         
-        // Columna de porcentaje con total de días
-        html += `<td class="attendance-cell ${colorClase}"><strong>${porcentaje}%</strong><br><small>${totalAsistencias}/${totalDias}</small></td>`;
+        // ✅ COLUMNA DE PORCENTAJE CON ESTILOS INLINE
+        html += `<td style="background-color: ${bgColor} !important; color: ${textColor} !important; text-align: center; font-weight: 700; font-size: 0.9rem; padding: 8px 6px; border-radius: 4px;">
+            <strong style="font-size: 1rem;">${porcentaje}%</strong>
+            <br>
+            <small style="font-size: 0.75rem; opacity: 0.95; color: ${textColor};">${totalAsistencias}/${totalDias}</small>
+        </td>`;
         html += `</tr>`;
     });
     html += '</tbody></table>';
@@ -149,7 +160,7 @@ function renderWeeklySummary() {
     document.getElementById('statsRow').innerHTML = `
         <div class="stat-mini" style="background: linear-gradient(135deg, #667eea, #764ba2);"><div class="num">${total}</div><div class="lbl">Total</div></div>
         <div class="stat-mini" style="background: linear-gradient(135deg, #00b894, #00cec9);"><div class="num">${presentes}</div><div class="lbl">✅ Presentes</div></div>
-        <div class="stat-mini" style="background: linear-gradient(135deg, #fdcb6e, #e17055);"><div class="num">${tardanzas}</div><div class="lbl">⏰ Tardanzas</div></div>
+        <div class="stat-mini" style="background: linear-gradient(135deg, #fdcb6e, #e17055);"><div class="num">${tardanzas}</div><div class="lbl"> Tardanzas</div></div>
         <div class="stat-mini" style="background: linear-gradient(135deg, #e74c3c, #fd79a8);"><div class="num">${ausentes}</div><div class="lbl">❌ Ausentes</div></div>
     `;
 
