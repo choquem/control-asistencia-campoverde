@@ -3,7 +3,7 @@
 // ============================================
 
 const CONFIG = {
-    GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxgoEpuT5BUgm0w0y54hU26uWODXZYNsKONM15Lxy_VuK2dX5dq9T9WgGXF4lcc2X4u_w/exec',
+    GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx1DgHBVlCcCo0dUrs818EIZFRDqT12R-LnMLaIHTIeSNVB6ZWN14DMZvPzw1SMPvluwQ/exec',
     CSV_URL: 'https://raw.githubusercontent.com/choquem/control-asistencia-campoverde/main/students.csv'
 };
 
