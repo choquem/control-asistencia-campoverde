@@ -238,20 +238,9 @@ tr:hover { background: #f8f9fa; }
 }
 
 /* FORMULARIO DE INSCRIPCIÓN */
-.form-group {
-    margin-bottom: 15px;
-}
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #667eea;
-}
-.form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-}
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #667eea; }
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
 .student-list-item {
     display: flex;
     justify-content: space-between;
@@ -261,23 +250,43 @@ tr:hover { background: #f8f9fa; }
     border-radius: 8px;
     margin-bottom: 10px;
 }
-.student-list-item .info {
-    flex: 1;
+.student-list-item .info { flex: 1; }
+.student-list-item .info strong { display: block; color: #333; }
+.student-list-item .info small { color: #666; }
+.student-list-item .actions { display: flex; gap: 8px; }
+
+/* ============================================
+   COLORES DE ASISTENCIA INDIVIDUAL
+   ============================================ */
+.attendance-cell {
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 6px 4px;
+    border-radius: 4px;
+    transition: all 0.3s;
 }
-.student-list-item .info strong {
-    display: block;
-    color: #333;
+
+/* Verde: >= 75% */
+.attendance-cell.high {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
 }
-.student-list-item .info small {
-    color: #666;
+
+/* Amarillo: 50-74% */
+.attendance-cell.medium {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
 }
-.student-list-item .actions {
-    display: flex;
-    gap: 8px;
+
+/* Rojo: < 50% */
+.attendance-cell.low {
+    background-color: #dc3545 !important;
+    color: #ffffff !important;
 }
 
 /* ============================================
-   RESPONSIVE - MÓVIL (REEMPLAZA EL ANTERIOR)
+   RESPONSIVE - MÓVIL
    ============================================ */
 @media (max-width: 768px) {
     h1 { font-size: 1.3rem; margin-bottom: 15px; }
@@ -358,32 +367,35 @@ tr:hover { background: #f8f9fa; }
         line-height: 1;
     }
     
-    /* ✅ ICONOS PEQUEÑOS - Esto es clave */
+    /* ICONOS PEQUEÑOS */
     .summary-table td:not(:first-child) {
-        font-size: 0.7rem; /* Reduce los emojis/iconos */
+        font-size: 0.7rem;
         line-height: 1;
     }
     
-    /* Si los iconos son imágenes, forzar tamaño pequeño */
     .summary-table td:not(:first-child) img,
     .summary-table td:not(:first-child) .icon {
         width: 18px !important;
         height: 18px !important;
         max-width: 18px !important;
     }
-
-/* En móvil, ajustar la columna de asistencia */
-@media (max-width: 768px) {
+    
+    /* COLUMNA DE ASISTENCIA EN MÓVIL */
     .attendance-cell {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         padding: 4px 2px;
-        min-width: 60px;
+        min-width: 50px;
+    }
+    
+    .attendance-cell small {
+        font-size: 0.6rem;
+        display: block;
+        margin-top: 2px;
     }
     
     .summary-table th:last-child {
         width: 14%;
     }
-}
     
     /* Filtros y controles */
     .teacher-filters { flex-direction: column; align-items: stretch; gap: 6px; margin-bottom: 15px; }
@@ -415,49 +427,4 @@ tr:hover { background: #f8f9fa; }
     /* Barra de progreso */
     .progress-bar { height: 18px; margin-top: 10px; }
     .progress-fill { font-size: 0.7rem; }
-}
-
-/* ============================================
-   COLORES DE ASISTENCIA INDIVIDUAL
-   ============================================ */
-.attendance-cell {
-    text-align: center;
-    font-weight: 700;
-    font-size: 0.85rem;
-    padding: 6px 4px;
-    border-radius: 4px;
-    transition: all 0.3s;
-}
-
-/* Verde: >= 75% */
-.attendance-cell.high {
-    background-color: #28a745 !important;
-    color: #ffffff !important;
-}
-
-/* Amarillo: 50-74% */
-.attendance-cell.medium {
-    background-color: #ffc107 !important;
-    color: #212529 !important;
-}
-
-/* Rojo: < 50% */
-.attendance-cell.low {
-    background-color: #dc3545 !important;
-    color: #ffffff !important;
-}
-
-/* Para móvil */
-@media (max-width: 768px) {
-    .attendance-cell {
-        font-size: 0.7rem;
-        padding: 4px 2px;
-        min-width: 50px;
-    }
-    
-    .attendance-cell small {
-        font-size: 0.6rem;
-        display: block;
-        margin-top: 2px;
-    }
 }
