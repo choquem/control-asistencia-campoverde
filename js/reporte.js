@@ -176,3 +176,18 @@ function renderWeeklySummary() {
     progressFill.style.width = porcentajeGeneral + '%';
     progressFill.textContent = porcentajeGeneral + '%';
 }
+// ✅ FUNCIÓN PARA FILTRAR POR COLOR DE ASISTENCIA
+function filterByAttendanceColor(color) {
+    attendanceColorFilter = color;
+    
+    // Actualizar botones visualmente (quitar 'active' a todos y ponerlo al seleccionado)
+    document.querySelectorAll('.color-filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.color === color) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Volver a renderizar la tabla con el nuevo filtro
+    renderWeeklySummary();
+}
