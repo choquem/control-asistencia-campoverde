@@ -11,7 +11,25 @@ let attendanceColorFilter = 'todos';
 // ============================================
 // INICIALIZACIÓN
 // ============================================
-
+async function initReporte() {
+    try {
+        console.log('🔄 Cargando estudiantes...');
+        const data = await loadStudents();
+        students = data.students;
+        console.log('✅ Estudiantes cargados:', students.length);
+        
+        console.log('🔄 Cargando asistencia...');
+        attendanceData = await loadAttendanceFromSheet();
+        console.log('✅ Asistencia cargada:', attendanceData.length);
+        
+        generateTeacherFilters(data.uniqueTeachers);
+        renderWeekSelector();
+        renderWeeklySummary();
+        console.log('✅ Renderizado completado');
+    } catch (error) {
+        console.error('❌ Error:', error);
+    }
+}
 // Verificar autenticación al cargar
 if (!checkAuth()) {
     // Si no hay sesión, ya fue redirigido por checkAuth()
