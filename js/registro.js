@@ -110,36 +110,80 @@ async function saveAttendance() {
     isSaving = true;
     const btn = document.getElementById('btnSave');
     btn.disabled = true;
-    btn.textContent = 'Guardando...';
+    btn.textContent = 'Analizando cambios...';
 
-    // Preparar registros con acción (insert o update)
-    const records = validEntries.map(function(student) {
-        // Verificar si ya existe
+    // ✅ COMPARAR CON DATOS EXISTENTES
+    let toInsert = [];
+    let toUpdate = [];
+    let unchanged = 0;
+
+    validEntries.forEach(function(student) {
+        const newStatus = tempAttendance[student];
+        
+        // Buscar si ya existe un registro para este alumno en esta fecha
         const existing = attendanceData.find(function(r) { 
             return r.nombre === student && r.fecha === fecha; 
         });
-        
-        return {
-            nombre: student,
-            fecha: fecha,
-            estado: tempAttendance[student],
-            action: existing ? 'update' : 'insert'
-        };
+
+        if (existing) {
+            // Si existe, verificar si cambió el estado
+            if (existing.estado !== newStatus) {
+                toUpdate.push({
+                    nombre: student,
+                    fecha: fecha,
+                    estado: newStatus,
+                    action: 'update'
+                });
+            } else {
+                unchanged++; // No cambió, no se envía
+            }
+        } else {
+            // Si no existe, es nuevo
+            toInsert.push({
+                nombre: student,
+                fecha: fecha,
+                estado: newStatus,
+                action: 'insert'
+            });
+        }
     });
 
+    const totalChanges = toInsert.length + toUpdate.length;
+
+    if (totalChanges === 0) {
+        document.getElementById('saveMessage').innerHTML = '<div class="success">️ No hay cambios para guardar</div>';
+        isSaving = false;
+        btn.disabled = false;
+        btn.textContent = 'Guardar en Google Sheets';
+        setTimeout(function() { document.getElementById('saveMessage').innerHTML = ''; }, 3000);
+        return;
+    }
+
+    btn.textContent = 'Guardando ' + totalChanges + ' cambios...';
+
+    // Combinar todos los cambios
+    const allChanges = toInsert.concat(toUpdate);
+
     try {
-        // Enviar todos los registros al servidor
-        for (let i = 0; i < records.length; i++) {
+        // Enviar solo los cambios al servidor
+        for (let i = 0; i < allChanges.length; i++) {
             await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(records[i])
+                body: JSON.stringify(allChanges[i])
             });
             await new Promise(function(r) { setTimeout(r, 200); });
         }
         
-        document.getElementById('saveMessage').innerHTML = '<div class="success">✅ ' + records.length + ' registros guardados/actualizados</div>';
+        // Mensaje detallado
+        let msg = '<div class="success">✅ ';
+        if (toUpdate.length > 0) msg += toUpdate.length + ' actualizado' + (toUpdate.length > 1 ? 's' : '');
+        if (toUpdate.length > 0 && toInsert.length > 0) msg += ', ';
+        if (toInsert.length > 0) msg += toInsert.length + ' nuevo' + (toInsert.length > 1 ? 's' : '');
+        msg += '</div>';
+        
+        document.getElementById('saveMessage').innerHTML = msg;
         
         // Recargar datos después de 2 segundos
         setTimeout(function() {
@@ -150,7 +194,7 @@ async function saveAttendance() {
         }, 2000);
         
     } catch (error) {
-        document.getElementById('saveMessage').innerHTML = '<div class="error">Error al guardar</div>';
+        document.getElementById('saveMessage').innerHTML = '<div class="error"> Error al guardar</div>';
     } finally {
         isSaving = false;
         btn.disabled = false;
