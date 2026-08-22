@@ -88,13 +88,17 @@ function renderWeeklySummary() {
     html += `<th>Asistencia</th></tr></thead><tbody>`;
 
     filteredStudents.forEach((student, index) => {
-        // Calcular asistencia individual
+        // Calcular asistencia individual - TOTAL HISTÓRICO
+        const todosLosRegistros = attendanceData.filter(r => r.nombre === student.nombre);
         let diasAsistidos = 0;
         let diasTotales = 0;
         
-        days.forEach(day => {
-            const allRecords = attendanceData.filter(r => r.nombre === student.nombre && r.fecha === day.date);
-            const bestStatus = getBestStatus(allRecords);
+        // Contar todos los días únicos registrados para este alumno
+        const fechasUnicas = [...new Set(todosLosRegistros.map(r => r.fecha))];
+        
+        fechasUnicas.forEach(fecha => {
+            const registrosDelDia = todosLosRegistros.filter(r => r.fecha === fecha);
+            const bestStatus = getBestStatus(registrosDelDia);
             
             if (bestStatus) {
                 diasTotales++;
@@ -103,8 +107,8 @@ function renderWeeklySummary() {
                 }
             }
         });
-        
-        const porcentaje = diasTotales > 0 ? Math.round((diasAsistidos / diasTotales) * 100) : 0;
+    
+    const porcentaje = diasTotales > 0 ? Math.round((diasAsistidos / diasTotales) * 100) : 0;
         
         // Color según porcentaje
         let colorClase = 'low';
