@@ -8,60 +8,65 @@ console.log(' utils.js cargado');
 console.log('📡 URL de Google Script:', CONFIG.GOOGLE_SCRIPT_URL);
 
 async function loadStudents() {
-    console.log(' Cargando estudiantes desde CSV...');
+    console.log('📚 Cargando estudiantes desde CSV...');
     try {
         const response = await fetch(CONFIG.CSV_URL);
         const text = await response.text();
-        console.log('✅ CSV descargado:', text.length, 'bytes');
         
-        const lines = text.split('\n').filter(l => l.trim());
-        if (lines.length < 2) {
-            console.error('❌ CSV vacío');
+        console.log('✅ CSV descargado:', text.length, 'bytes');
+        console.log('📄 Contenido COMPLETO del CSV:');
+        console.log(text);
+        console.log('📄 Líneas separadas:');
+        const lines = text.split('\n');
+        lines.forEach((line, i) => {
+            console.log(`Línea ${i}: "${line}"`);
+        });
+        
+        const filteredLines = lines.filter(l => l.trim());
+        if (filteredLines.length < 2) {
+            console.error('❌ CSV sin datos válidos');
             return { students: [], uniqueTeachers: [] };
         }
         
-        // Encabezados: id, Nombre, maestro
-        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-        console.log('📋 Encabezados:', headers);
+        const firstLine = filteredLines[0];
+        console.log(' Primera línea (encabezados):', firstLine);
         
-        // Buscar columnas por nombre (case-insensitive)
-        const idxNombre = headers.findIndex(h => h === 'nombre');
-        const idxMaestro = headers.findIndex(h => h === 'maestro');
+        const headers = firstLine.split(',').map(h => {
+            const clean = h.trim().toLowerCase();
+            console.log(`  Header: "${h}" → "${clean}"`);
+            return clean;
+        });
+        
+        const idxNombre = headers.findIndex(h => h.includes('nombre'));
+        const idxMaestro = headers.findIndex(h => h.includes('maestro'));
         
         console.log('🔍 Índice Nombre:', idxNombre, '| Índice Maestro:', idxMaestro);
         
         if (idxNombre === -1 || idxMaestro === -1) {
-            console.error('❌ No se encontraron columnas "Nombre" o "maestro"');
+            console.error('❌ No encontró columnas. Headers detectados:', headers);
             return { students: [], uniqueTeachers: [] };
         }
         
         const students = [];
         const teachers = new Set();
         
-        for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(',').map(v => v.trim());
-            
-            // Saltar si no tiene suficientes columnas
-            if (values.length <= Math.max(idxNombre, idxMaestro)) continue;
-            
+        for (let i = 1; i < filteredLines.length; i++) {
+            const values = filteredLines[i].split(',').map(v => v.trim());
             const nombre = values[idxNombre];
             const maestro = values[idxMaestro];
             
             if (nombre && maestro) {
-                students.push({
-                    nombre: nombre,
-                    maestro: maestro
-                });
+                students.push({ nombre, maestro });
                 teachers.add(maestro);
             }
         }
         
         console.log('✅ Estudiantes cargados:', students.length);
-        console.log('👨‍🏫 Maestros:', Array.from(teachers));
+        console.log('‍🏫 Maestros:', Array.from(teachers));
         
         return { students, uniqueTeachers: Array.from(teachers) };
     } catch (error) {
-        console.error('❌ Error cargando estudiantes:', error);
+        console.error(' Error:', error);
         return { students: [], uniqueTeachers: [] };
     }
 }
