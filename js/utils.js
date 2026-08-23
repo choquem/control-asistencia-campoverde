@@ -1,4 +1,5 @@
 const CONFIG = {
+    // ⚠️ PEGA AQUÍ LA NUEVA URL DE TU IMPLEMENTACIÓN
     GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw1FCieIebxQRsYVToFFoxZlXmpJcA1ugyDCGdrmA6-KvPLtc2L5aqddjLAX2ojIuQmmQ/exec',
     CSV_URL: 'https://raw.githubusercontent.com/choquem/control-asistencia-campoverde/main/students.csv'
 };
@@ -35,19 +36,31 @@ async function loadAttendanceFromSheet() {
     try {
         const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL);
         const text = await response.text();
+        
+        // Verificar que la respuesta sea JSON válido
+        if (!text.startsWith('{')) {
+            console.error('La URL no devuelve JSON. ¿Creaste una nueva implementación?', text.substring(0, 100));
+            return [];
+        }
+
         const result = JSON.parse(text);
         
         if (result.result === 'success') {
-            return deduplicateAttendance(
-                (result.data || []).map(function(record) {
-                    return {
-                        id: record.id || generarID(record.nombre || record.alumno, normalizeDate(record.fecha)),
-                        fecha: normalizeDate(record.fecha),
-                        nombre: String(record.nombre || record.alumno).trim(),
-                        estado: String(record.estado).trim().toLowerCase()
-                    };
-                })
-            );
+            const records = (result.data || []).map(function(record) {
+                // Mapeo flexible: busca por nombre de propiedad o por valor directo
+                const nombre = record.nombre || record.alumno || record.Alumno || '';
+                const fecha = record.fecha || record.Fecha || '';
+                const estado = record.estado || record.Estado || '';
+                
+                return {
+                    id: record.id || record.ID || generarID(nombre, normalizeDate(fecha)),
+                    fecha: normalizeDate(fecha),
+                    nombre: String(nombre).trim(),
+                    estado: String(estado).trim().toLowerCase()
+                };
+            });
+            
+            return deduplicateAttendance(records);
         }
         return [];
     } catch (error) {
@@ -85,9 +98,16 @@ function normalizeDate(fecha) {
 function deduplicateAttendance(records) {
     const seen = new Map();
     records.forEach(r => {
+        if (!r.nombre || !r.fecha) return;
         const key = r.nombre + '_' + r.fecha;
-        if (!seen.has(key) || seen.get(key).estado === 'ausente') {
+        if (!seen.has(key)) {
             seen.set(key, r);
+        } else {
+            // Si hay duplicados, priorizar 'presente' sobre 'ausente'
+            const existing = seen.get(key);
+            if (existing.estado === 'ausente' && r.estado !== 'ausente') {
+                seen.set(key, r);
+            }
         }
     });
     return Array.from(seen.values());
@@ -110,7 +130,8 @@ function getWeekDays(offset = 0) {
     const today = new Date();
     const currentDay = today.getDay();
     const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
-    const monday = new Date(today.setDate(diff + (offset * 7)));
+    const monday = new Date(today);
+    monday.setDate(diff + (offset * 7));
     
     const days = [];
     const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
