@@ -1,54 +1,34 @@
-// ============================================
-// FUNCIONES - PÁGINA DE REGISTRO
-// ============================================
-
 let students = [];
 let attendanceData = [];
 let tempAttendance = {};
 let isSaving = false;
 let currentTeacherFilter = 'todos';
 
-// ============================================
-// INICIALIZACIÓN
-// ============================================
-
-// Verificar autenticación al cargar
 if (!requireAdmin()) {
-    // Si no es admin, ya fue redirigido por requireAdmin()
 } else {
-    // Generar navegación
     document.getElementById('navbar').innerHTML = generateNavigation('registro');
-    
-    // Inicializar página
     initRegistro();
 }
 
 async function initRegistro() {
-    // Establecer fecha de hoy
     document.getElementById('fecha').valueAsDate = new Date();
     updateCurrentDate();
     
-    // Evento para cambiar fecha
     document.getElementById('fecha').addEventListener('change', function() {
         updateCurrentDate();
         renderAttendanceTable();
     });
     
     try {
-        // Cargar lista de alumnos
         const data = await loadStudents();
         students = data.students;
-        
-        // Generar filtros de maestros
         generateTeacherFilters(data.uniqueTeachers);
         
-        // Ocultar loading y mostrar panel
         document.getElementById('loadingStudents').style.display = 'none';
         document.getElementById('registrationPanel').style.display = 'block';
         updateStudentCount();
         renderAttendanceTable();
         
-        // Cargar datos de asistencia desde Google Sheets
         attendanceData = await loadAttendanceFromSheet();
         console.log('Asistencia cargada:', attendanceData.length, 'registros');
     } catch (error) {
@@ -56,10 +36,6 @@ async function initRegistro() {
         console.error('Error inicializando registro:', error);
     }
 }
-
-// ============================================
-// FUNCIONES AUXILIARES
-// ============================================
 
 function updateCurrentDate() {
     const fechaInput = document.getElementById('fecha').value;
@@ -95,14 +71,9 @@ function updateStudentCount() {
     document.getElementById('studentCount').textContent = filtered.length + ' alumnos';
 }
 
-// ============================================
-// RENDERIZADO DE TABLA
-// ============================================
-
 function renderAttendanceTable() {
     const fecha = document.getElementById('fecha').value;
     
-    // Cargar estado actual desde attendanceData si no hay cambios temporales para esta fecha
     if (Object.keys(tempAttendance).length === 0 || !tempAttendance._loadedFor || tempAttendance._loadedFor !== fecha) {
         tempAttendance = { _loadedFor: fecha };
         attendanceData.filter(function(r) { return r.fecha === fecha; }).forEach(function(r) { 
@@ -119,7 +90,7 @@ function renderAttendanceTable() {
         html += '<tr><td><strong>' + (index + 1) + '. ' + student.nombre + '</strong> <small style="color: #666;">(' + student.maestro + ')</small></td>';
         html += '<td><div class="status-buttons">';
         html += '<button class="status-btn presente ' + (state === 'presente' ? 'active' : '') + '" onclick="setStatus(\'' + student.nombre + '\', \'presente\')">✅ Presente</button>';
-        html += '<button class="status-btn ausente ' + (state === 'ausente' ? 'active' : '') + '" onclick="setStatus(\'' + student.nombre + '\', \'ausente\')">❌ Ausente</button>';
+        html += '<button class="status-btn ausente ' + (state === 'ausente' ? 'active' : '') + '" onclick="setStatus(\'' + student.nombre + '\', \'ausente\')"> Ausente</button>';
         html += '<button class="status-btn tardanza ' + (state === 'tardanza' ? 'active' : '') + '" onclick="setStatus(\'' + student.nombre + '\', \'tardanza\')">⏰ Tardanza</button>';
         html += '</div></td></tr>';
     });
@@ -134,10 +105,6 @@ function setStatus(student, status) {
     row.querySelectorAll('.status-btn').forEach(function(btn) { btn.classList.remove('active'); });
     event.target.closest('.status-btn').classList.add('active');
 }
-
-// ============================================
-// GUARDADO OPTIMIZADO CON LOGS DE DEPURACIÓN
-// ============================================
 
 async function saveAttendance() {
     if (isSaving) return;
@@ -165,14 +132,16 @@ async function saveAttendance() {
 
     validEntries.forEach(function(student) {
         const newStatus = tempAttendance[student];
+        const id = generarID(student, fecha);
         
         const existing = attendanceData.find(function(r) { 
-            return r.nombre === student && r.fecha === fecha; 
+            return r.id === id; 
         });
 
         if (existing) {
             if (existing.estado !== newStatus) {
                 toUpdate.push({
+                    id: id,
                     nombre: student,
                     fecha: fecha,
                     estado: newStatus,
@@ -184,6 +153,7 @@ async function saveAttendance() {
             }
         } else {
             toInsert.push({
+                id: id,
                 nombre: student,
                 fecha: fecha,
                 estado: newStatus,
@@ -194,37 +164,29 @@ async function saveAttendance() {
 
     const totalChanges = toInsert.length + toUpdate.length;
 
-    // LOGS DETALLADOS
     console.log('========================================');
-    console.log('📋 REPORTE DE GUARDADO - Fecha:', fecha);
-    console.log('========================================');
-    console.log('👥 Total alumnos marcados:', validEntries.length);
+    console.log('📋 REPORTE - Fecha:', fecha);
+    console.log('👥 Total:', validEntries.length);
     console.log('✅ Sin cambios:', unchanged);
-    console.log('🆕 Nuevos:', toInsert.length);
+    console.log(' Nuevos:', toInsert.length);
     console.log('🔄 Actualizar:', toUpdate.length);
-    console.log('----------------------------------------');
-    console.log('📊 Datos en memoria (attendanceData):', attendanceData.length, 'registros');
-    console.log('📊 Registros para esta fecha:', attendanceData.filter(function(r) { return r.fecha === fecha; }).length);
-    console.log('----------------------------------------');
     
     if (toUpdate.length > 0) {
-        console.log('🔄 DETALLE DE ACTUALIZACIONES:');
+        console.log('🔄 ACTUALIZACIONES:');
         toUpdate.forEach(function(r, i) {
-            console.log((i+1) + '. ' + r.nombre);
-            console.log('   Fecha: "' + r.fecha + '"');
-            console.log('   Estado anterior: "' + r.anterior + '"');
-            console.log('   Estado nuevo: "' + r.estado + '"');
-            console.log('   Action: "' + r.action + '"');
+            console.log((i+1) + '. ' + r.nombre + ' (ID: ' + r.id + ')');
+            console.log('   ' + r.anterior + ' → ' + r.estado);
         });
     }
     
     if (toInsert.length > 0) {
-        console.log('🆕 DETALLE DE NUEVOS:');
-        console.table(toInsert);
+        console.log(' NUEVOS:');
+        toInsert.forEach(function(r) {
+            console.log('• ' + r.nombre + ' (ID: ' + r.id + ')');
+        });
     }
     console.log('========================================');
 
-    // Mostrar detalle en pantalla
     let debugHtml = '<div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin: 10px 0; font-size: 0.8rem; max-height: 300px; overflow-y: auto; border: 1px solid #ddd;">';
     debugHtml += '<strong>📋 Detalle:</strong><br>';
     debugHtml += '<small>Sin cambios: ' + unchanged + '</small><br><br>';
@@ -242,13 +204,12 @@ async function saveAttendance() {
         toUpdate.forEach(function(r) {
             debugHtml += '• ' + r.nombre + '<br>';
             debugHtml += '&nbsp;&nbsp;Antes: ' + r.anterior + ' → Ahora: ' + r.estado + '<br>';
-            debugHtml += '&nbsp;&nbsp;Fecha: ' + r.fecha + '<br>';
         });
     }
     debugHtml += '</div>';
 
     if (totalChanges === 0) {
-        document.getElementById('saveMessage').innerHTML = '<div class="success">️ No hay cambios</div>' + debugHtml;
+        document.getElementById('saveMessage').innerHTML = '<div class="success">ℹ️ No hay cambios</div>' + debugHtml;
         isSaving = false;
         btn.disabled = false;
         btn.textContent = '💾 Guardar en Google Sheets';
@@ -256,21 +217,18 @@ async function saveAttendance() {
     }
 
     btn.textContent = 'Guardando ' + totalChanges + ' cambios...';
-
     const allChanges = toInsert.concat(toUpdate);
 
     try {
         for (let i = 0; i < allChanges.length; i++) {
-            console.log(' Enviando #' + (i+1) + ':', JSON.stringify(allChanges[i]));
+            console.log(' Enviando #' + (i+1) + ':', allChanges[i]);
             
-            const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
+            await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(allChanges[i])
             });
-            
-            console.log('✅ Respuesta #' + (i+1) + ':', response.status);
             await new Promise(function(r) { setTimeout(r, 300); });
         }
         
