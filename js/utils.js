@@ -193,11 +193,18 @@ function generarID(nombre, fecha) {
 
 function getWeekDays(offset = 0) {
     const today = new Date();
-    const currentDay = today.getDay();
-    const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+    const currentDay = today.getDay(); // 0=Dom, 1=Lun, ..., 6=Sáb
     
-    // ✅ Crear fecha del lunes a mediodía (evita problemas de zona horaria)
-    const monday = new Date(today.getFullYear(), today.getMonth(), diff + (offset * 7), 12, 0, 0);
+    // Calcular el lunes de esta semana
+    // Si hoy es domingo (0), restar 6 días
+    // Si hoy es lunes (1), restar 0 días
+    // Si hoy es sábado (6), restar 5 días
+    const daysToSubtract = currentDay === 0 ? 6 : currentDay - 1;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - daysToSubtract + (offset * 7));
+    
+    // Ajustar a mediodía para evitar problemas de zona horaria
+    monday.setHours(12, 0, 0, 0);
     
     const days = [];
     const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -206,7 +213,8 @@ function getWeekDays(offset = 0) {
     for (let i = 0; i < 5; i++) {
         const date = new Date(monday);
         date.setDate(monday.getDate() + i);
-        // ✅ Formatear fecha manualmente (sin toISOString)
+        
+        // Formatear fecha manualmente
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
@@ -220,7 +228,6 @@ function getWeekDays(offset = 0) {
     }
     return days;
 }
-
 function getBestStatus(records) {
     if (!records || records.length === 0) return null;
     if (records.some(r => r.estado === 'presente')) return 'presente';
