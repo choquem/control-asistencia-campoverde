@@ -129,7 +129,7 @@ function renderWeeklySummary() {
             let cellContent = '-';
             if (bestStatus === 'presente') cellContent = '✅';
             else if (bestStatus === 'ausente') cellContent = '❌';
-            else if (bestStatus === 'tardanza') cellContent = '⏰';
+            else if (bestStatus === 'tardanza') cellContent = '';
             html += '<td>' + cellContent + '</td>';
         });
         
