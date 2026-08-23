@@ -8,31 +8,56 @@ console.log(' utils.js cargado');
 console.log('📡 URL de Google Script:', CONFIG.GOOGLE_SCRIPT_URL);
 
 async function loadStudents() {
-    console.log('📚 Cargando estudiantes desde CSV...');
+    console.log(' Cargando estudiantes desde CSV...');
     try {
         const response = await fetch(CONFIG.CSV_URL);
         const text = await response.text();
         console.log('✅ CSV descargado:', text.length, 'bytes');
         
         const lines = text.split('\n').filter(l => l.trim());
-        const headers = lines[0].split(',').map(h => h.trim());
+        if (lines.length < 2) {
+            console.error('❌ CSV vacío');
+            return { students: [], uniqueTeachers: [] };
+        }
+        
+        // Encabezados: id, Nombre, maestro
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+        console.log('📋 Encabezados:', headers);
+        
+        // Buscar columnas por nombre (case-insensitive)
+        const idxNombre = headers.findIndex(h => h === 'nombre');
+        const idxMaestro = headers.findIndex(h => h === 'maestro');
+        
+        console.log('🔍 Índice Nombre:', idxNombre, '| Índice Maestro:', idxMaestro);
+        
+        if (idxNombre === -1 || idxMaestro === -1) {
+            console.error('❌ No se encontraron columnas "Nombre" o "maestro"');
+            return { students: [], uniqueTeachers: [] };
+        }
         
         const students = [];
         const teachers = new Set();
         
         for (let i = 1; i < lines.length; i++) {
             const values = lines[i].split(',').map(v => v.trim());
-            const student = {};
-            headers.forEach((h, idx) => { student[h] = values[idx] || ''; });
             
-            if (student.nombre && student.maestro) {
-                students.push(student);
-                teachers.add(student.maestro);
+            // Saltar si no tiene suficientes columnas
+            if (values.length <= Math.max(idxNombre, idxMaestro)) continue;
+            
+            const nombre = values[idxNombre];
+            const maestro = values[idxMaestro];
+            
+            if (nombre && maestro) {
+                students.push({
+                    nombre: nombre,
+                    maestro: maestro
+                });
+                teachers.add(maestro);
             }
         }
         
         console.log('✅ Estudiantes cargados:', students.length);
-        console.log('‍🏫 Maestros únicos:', Array.from(teachers));
+        console.log('👨‍🏫 Maestros:', Array.from(teachers));
         
         return { students, uniqueTeachers: Array.from(teachers) };
     } catch (error) {
@@ -40,7 +65,6 @@ async function loadStudents() {
         return { students: [], uniqueTeachers: [] };
     }
 }
-
 async function loadAttendanceFromSheet() {
     console.log(' Cargando asistencia desde Google Sheets...');
     try {
