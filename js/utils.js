@@ -127,20 +127,36 @@ async function loadAttendanceFromSheet() {
 
 function normalizeDate(fecha) {
     if (!fecha) return '';
+    
+    // Si es objeto Date
     if (fecha instanceof Date) {
         const year = fecha.getFullYear();
         const month = String(fecha.getMonth() + 1).padStart(2, '0');
         const day = String(fecha.getDate()).padStart(2, '0');
         return year + '-' + month + '-' + day;
     }
+    
     const str = String(fecha).trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    
+    // Si ya está en formato YYYY-MM-DD (sin hora)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+        return str;
+    }
+    
+    // Si viene con hora (ISO: 2026-08-21T04:00:00.000Z)
+    if (str.includes('T')) {
+        return str.split('T')[0]; // Tomar solo la parte de la fecha
+    }
+    
+    // Si tiene barra (DD/MM/YYYY o MM/DD/YYYY)
     if (str.includes('/')) {
         const parts = str.split('/');
         if (parts.length === 3) {
             return parts[2] + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
         }
     }
+    
+    // Intentar parsear como Date
     const date = new Date(str);
     if (!isNaN(date.getTime())) {
         const year = date.getFullYear();
@@ -148,9 +164,9 @@ function normalizeDate(fecha) {
         const day = String(date.getDate()).padStart(2, '0');
         return year + '-' + month + '-' + day;
     }
+    
     return str;
 }
-
 function deduplicateAttendance(records) {
     const seen = new Map();
     records.forEach(r => {
