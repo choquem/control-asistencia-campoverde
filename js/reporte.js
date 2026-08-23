@@ -82,7 +82,9 @@ function renderWeeklySummary() {
 
     let html = '<table class="summary-table"><thead><tr><th>Alumno</th>';
     days.forEach(function(day) {
-        html += '<th>' + day.name + '</th>';
+        // ✅ Mostrar día + número (ej: Lun 17, Mar 18)
+        const dayNumber = day.date.split('-')[2];
+        html += '<th>' + day.name + ' ' + dayNumber + '</th>';
     });
     html += '<th>Total</th></tr></thead><tbody>';
 
