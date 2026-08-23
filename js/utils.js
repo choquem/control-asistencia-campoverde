@@ -195,8 +195,9 @@ function getWeekDays(offset = 0) {
     const today = new Date();
     const currentDay = today.getDay();
     const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
-    const monday = new Date(today);
-    monday.setDate(diff + (offset * 7));
+    
+    // ✅ Crear fecha del lunes a mediodía (evita problemas de zona horaria)
+    const monday = new Date(today.getFullYear(), today.getMonth(), diff + (offset * 7), 12, 0, 0);
     
     const days = [];
     const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -205,9 +206,15 @@ function getWeekDays(offset = 0) {
     for (let i = 0; i < 5; i++) {
         const date = new Date(monday);
         date.setDate(monday.getDate() + i);
+        // ✅ Formatear fecha manualmente (sin toISOString)
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateStr = year + '-' + month + '-' + day;
+        
         days.push({
             name: dayNames[date.getDay()],
-            date: date.toISOString().split('T')[0],
+            date: dateStr,
             fullDate: date.getDate() + ' ' + monthNames[date.getMonth()]
         });
     }
