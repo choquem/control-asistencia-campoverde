@@ -1,13 +1,19 @@
 const CONFIG = {
-    // ⚠️ PEGA AQUÍ LA NUEVA URL DE TU IMPLEMENTACIÓN
+    // ⚠️ PEGA AQUÍ LA URL DE TU NUEVA IMPLEMENTACIÓN
     GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw1FCieIebxQRsYVToFFoxZlXmpJcA1ugyDCGdrmA6-KvPLtc2L5aqddjLAX2ojIuQmmQ/exec',
     CSV_URL: 'https://raw.githubusercontent.com/choquem/control-asistencia-campoverde/main/students.csv'
 };
 
+console.log(' utils.js cargado');
+console.log('📡 URL de Google Script:', CONFIG.GOOGLE_SCRIPT_URL);
+
 async function loadStudents() {
+    console.log('📚 Cargando estudiantes desde CSV...');
     try {
         const response = await fetch(CONFIG.CSV_URL);
         const text = await response.text();
+        console.log('✅ CSV descargado:', text.length, 'bytes');
+        
         const lines = text.split('\n').filter(l => l.trim());
         const headers = lines[0].split(',').map(h => h.trim());
         
@@ -25,29 +31,45 @@ async function loadStudents() {
             }
         }
         
+        console.log('✅ Estudiantes cargados:', students.length);
+        console.log('‍🏫 Maestros únicos:', Array.from(teachers));
+        
         return { students, uniqueTeachers: Array.from(teachers) };
     } catch (error) {
-        console.error('Error cargando estudiantes:', error);
+        console.error('❌ Error cargando estudiantes:', error);
         return { students: [], uniqueTeachers: [] };
     }
 }
 
 async function loadAttendanceFromSheet() {
+    console.log(' Cargando asistencia desde Google Sheets...');
     try {
+        console.log(' Fetching:', CONFIG.GOOGLE_SCRIPT_URL);
         const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL);
-        const text = await response.text();
+        console.log('📥 Status:', response.status);
         
-        // Verificar que la respuesta sea JSON válido
-        if (!text.startsWith('{')) {
-            console.error('La URL no devuelve JSON. ¿Creaste una nueva implementación?', text.substring(0, 100));
+        const text = await response.text();
+        console.log('📄 Respuesta recibida:', text.length, 'bytes');
+        console.log('📄 Primeros 100 chars:', text.substring(0, 100));
+        
+        // Verificar que sea JSON
+        if (!text.trim().startsWith('{')) {
+            console.error('❌ La respuesta NO es JSON. Es:', text.substring(0, 50));
             return [];
         }
 
         const result = JSON.parse(text);
+        console.log('✅ JSON parseado:', result);
         
         if (result.result === 'success') {
+            const dataLength = result.data ? result.data.length : 0;
+            console.log('📋 Registros en Sheets:', dataLength);
+            
+            if (dataLength > 0) {
+                console.log(' Primer registro:', result.data[0]);
+            }
+            
             const records = (result.data || []).map(function(record) {
-                // Mapeo flexible: busca por nombre de propiedad o por valor directo
                 const nombre = record.nombre || record.alumno || record.Alumno || '';
                 const fecha = record.fecha || record.Fecha || '';
                 const estado = record.estado || record.Estado || '';
@@ -60,11 +82,16 @@ async function loadAttendanceFromSheet() {
                 };
             });
             
-            return deduplicateAttendance(records);
+            const deduped = deduplicateAttendance(records);
+            console.log('✅ Asistencia procesada:', deduped.length, 'registros únicos');
+            return deduped;
+        } else {
+            console.error('❌ El script devoló error:', result);
+            return [];
         }
-        return [];
     } catch (error) {
-        console.error('Error cargando asistencia:', error);
+        console.error('❌ Error cargando asistencia:', error);
+        console.error('Stack:', error.stack);
         return [];
     }
 }
@@ -103,7 +130,6 @@ function deduplicateAttendance(records) {
         if (!seen.has(key)) {
             seen.set(key, r);
         } else {
-            // Si hay duplicados, priorizar 'presente' sobre 'ausente'
             const existing = seen.get(key);
             if (existing.estado === 'ausente' && r.estado !== 'ausente') {
                 seen.set(key, r);
