@@ -1,4 +1,5 @@
 const CONFIG = {
+    // ⚠️ REEMPLAZA CON TU URL ACTUAL DE GOOGLE APPS SCRIPT
     GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw1FCieIebxQRsYVToFFoxZlXmpJcA1ugyDCGdrmA6-KvPLtc2L5aqddjLAX2ojIuQmmQ/exec',
     CSV_URL: 'https://raw.githubusercontent.com/choquem/control-asistencia-campoverde/main/students.csv'
 };
@@ -7,7 +8,7 @@ console.log(' utils.js cargado');
 console.log('📡 URL de Google Script:', CONFIG.GOOGLE_SCRIPT_URL);
 
 async function loadStudents() {
-    console.log('📚 Cargando estudiantes desde CSV...');
+    console.log(' Cargando estudiantes desde CSV...');
     try {
         const response = await fetch(CONFIG.CSV_URL);
         const text = await response.text();
@@ -47,7 +48,7 @@ async function loadStudents() {
         }
         
         console.log('✅ Estudiantes cargados:', students.length);
-        console.log('‍🏫 Maestros:', Array.from(teachers));
+        console.log('🏫 Maestros:', Array.from(teachers));
         
         return { students, uniqueTeachers: Array.from(teachers) };
     } catch (error) {
@@ -80,7 +81,7 @@ async function loadAttendanceFromSheet() {
                 const fechaRaw = record.fecha || record.Fecha || '';
                 const estado = record.estado || record.Estado || '';
                 
-                // ✅ Normalizar fecha correctamente
+                // Normalizar fecha
                 const fecha = normalizeDate(fechaRaw);
                 
                 return {
@@ -91,7 +92,7 @@ async function loadAttendanceFromSheet() {
                 };
             });
             
-            // Log de las primeras 5 fechas normalizadas
+            // Log de fechas normalizadas
             console.log('🔍 Primeras 5 fechas normalizadas:');
             records.slice(0, 5).forEach((r, i) => {
                 console.log(`  ${i+1}. ${r.nombre}: "${r.fecha}"`);
@@ -100,7 +101,7 @@ async function loadAttendanceFromSheet() {
             const deduped = deduplicateAttendance(records);
             console.log('✅ Asistencia procesada:', deduped.length, 'registros únicos');
             
-            // Contar registros por fecha
+            // Contar por fecha
             const fechasCount = {};
             deduped.forEach(r => {
                 fechasCount[r.fecha] = (fechasCount[r.fecha] || 0) + 1;
@@ -116,7 +117,7 @@ async function loadAttendanceFromSheet() {
     }
 }
 
-// ✅ FUNCIÓN CORREGIDA PARA NORMALIZAR FECHAS
+// ✅ FUNCIÓN CORREGIDA - Maneja fechas ISO con hora
 function normalizeDate(fecha) {
     if (!fecha) return '';
     
@@ -130,7 +131,7 @@ function normalizeDate(fecha) {
     
     const str = String(fecha).trim();
     
-    // Si viene con hora (ISO: 2026-08-21T04:00:00.000Z)
+    // ✅ Si viene con hora (ISO: 2026-08-21T04:00:00.000Z)
     if (str.includes('T')) {
         return str.split('T')[0]; // Tomar solo YYYY-MM-DD
     }
