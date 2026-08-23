@@ -1,6 +1,5 @@
 const CONFIG = {
-    // ⚠️ PEGA AQUÍ LA URL DE TU NUEVA IMPLEMENTACIÓN
-    GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw1FCieIebxQRsYVToFFoxZlXmpJcA1ugyDCGdrmA6-KvPLtc2L5aqddjLAX2ojIuQmmQ/exec',
+    GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw1FCieIebxQRsYVToFFoxZlXmpJcA1ugyDCGdrmA6-KvPLtc2L5aqddjL/exec',
     CSV_URL: 'https://raw.githubusercontent.com/choquem/control-asistencia-campoverde/main/students.csv'
 };
 
@@ -12,30 +11,16 @@ async function loadStudents() {
     try {
         const response = await fetch(CONFIG.CSV_URL);
         const text = await response.text();
-        
         console.log('✅ CSV descargado:', text.length, 'bytes');
-        console.log('📄 Contenido COMPLETO del CSV:');
-        console.log(text);
-        console.log('📄 Líneas separadas:');
-        const lines = text.split('\n');
-        lines.forEach((line, i) => {
-            console.log(`Línea ${i}: "${line}"`);
-        });
         
-        const filteredLines = lines.filter(l => l.trim());
-        if (filteredLines.length < 2) {
-            console.error('❌ CSV sin datos válidos');
+        const lines = text.split('\n').filter(l => l.trim());
+        if (lines.length < 2) {
+            console.error('❌ CSV vacío');
             return { students: [], uniqueTeachers: [] };
         }
         
-        const firstLine = filteredLines[0];
-        console.log(' Primera línea (encabezados):', firstLine);
-        
-        const headers = firstLine.split(',').map(h => {
-            const clean = h.trim().toLowerCase();
-            console.log(`  Header: "${h}" → "${clean}"`);
-            return clean;
-        });
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+        console.log('📋 Encabezados:', headers);
         
         const idxNombre = headers.findIndex(h => h.includes('nombre'));
         const idxMaestro = headers.findIndex(h => h.includes('maestro'));
@@ -43,15 +28,15 @@ async function loadStudents() {
         console.log('🔍 Índice Nombre:', idxNombre, '| Índice Maestro:', idxMaestro);
         
         if (idxNombre === -1 || idxMaestro === -1) {
-            console.error('❌ No encontró columnas. Headers detectados:', headers);
+            console.error('❌ No encontró columnas');
             return { students: [], uniqueTeachers: [] };
         }
         
         const students = [];
         const teachers = new Set();
         
-        for (let i = 1; i < filteredLines.length; i++) {
-            const values = filteredLines[i].split(',').map(v => v.trim());
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => v.trim());
             const nombre = values[idxNombre];
             const maestro = values[idxMaestro];
             
@@ -66,65 +51,72 @@ async function loadStudents() {
         
         return { students, uniqueTeachers: Array.from(teachers) };
     } catch (error) {
-        console.error(' Error:', error);
+        console.error('❌ Error:', error);
         return { students: [], uniqueTeachers: [] };
     }
 }
+
 async function loadAttendanceFromSheet() {
     console.log(' Cargando asistencia desde Google Sheets...');
     try {
-        console.log(' Fetching:', CONFIG.GOOGLE_SCRIPT_URL);
         const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL);
-        console.log('📥 Status:', response.status);
-        
         const text = await response.text();
-        console.log('📄 Respuesta recibida:', text.length, 'bytes');
-        console.log('📄 Primeros 100 chars:', text.substring(0, 100));
+        console.log('📥 Status:', response.status);
+        console.log('📄 Respuesta:', text.length, 'bytes');
         
-        // Verificar que sea JSON
         if (!text.trim().startsWith('{')) {
-            console.error('❌ La respuesta NO es JSON. Es:', text.substring(0, 50));
+            console.error('❌ No es JSON');
             return [];
         }
 
         const result = JSON.parse(text);
-        console.log('✅ JSON parseado:', result);
+        console.log('✅ JSON parseado');
         
         if (result.result === 'success') {
-            const dataLength = result.data ? result.data.length : 0;
-            console.log('📋 Registros en Sheets:', dataLength);
+            console.log(' Registros en Sheets:', result.data.length);
             
-            if (dataLength > 0) {
-                console.log(' Primer registro:', result.data[0]);
-            }
-            
-            const records = (result.data || []).map(function(record) {
+            const records = result.data.map(function(record) {
                 const nombre = record.nombre || record.alumno || record.Alumno || '';
-                const fecha = record.fecha || record.Fecha || '';
+                const fechaRaw = record.fecha || record.Fecha || '';
                 const estado = record.estado || record.Estado || '';
                 
+                // ✅ Normalizar fecha correctamente
+                const fecha = normalizeDate(fechaRaw);
+                
                 return {
-                    id: record.id || record.ID || generarID(nombre, normalizeDate(fecha)),
-                    fecha: normalizeDate(fecha),
+                    id: record.id || record.ID || generarID(nombre, fecha),
+                    fecha: fecha,
                     nombre: String(nombre).trim(),
                     estado: String(estado).trim().toLowerCase()
                 };
             });
             
+            // Log de las primeras 5 fechas normalizadas
+            console.log('🔍 Primeras 5 fechas normalizadas:');
+            records.slice(0, 5).forEach((r, i) => {
+                console.log(`  ${i+1}. ${r.nombre}: "${r.fecha}"`);
+            });
+            
             const deduped = deduplicateAttendance(records);
             console.log('✅ Asistencia procesada:', deduped.length, 'registros únicos');
+            
+            // Contar registros por fecha
+            const fechasCount = {};
+            deduped.forEach(r => {
+                fechasCount[r.fecha] = (fechasCount[r.fecha] || 0) + 1;
+            });
+            console.log('📅 Registros por fecha:', fechasCount);
+            
             return deduped;
-        } else {
-            console.error('❌ El script devoló error:', result);
-            return [];
         }
+        return [];
     } catch (error) {
-        console.error('❌ Error cargando asistencia:', error);
-        console.error('Stack:', error.stack);
+        console.error('❌ Error:', error);
         return [];
     }
 }
 
+// ✅ FUNCIÓN CORREGIDA PARA NORMALIZAR FECHAS
 function normalizeDate(fecha) {
     if (!fecha) return '';
     
@@ -138,17 +130,17 @@ function normalizeDate(fecha) {
     
     const str = String(fecha).trim();
     
-    // Si ya está en formato YYYY-MM-DD (sin hora)
+    // Si viene con hora (ISO: 2026-08-21T04:00:00.000Z)
+    if (str.includes('T')) {
+        return str.split('T')[0]; // Tomar solo YYYY-MM-DD
+    }
+    
+    // Si ya está en formato YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
         return str;
     }
     
-    // Si viene con hora (ISO: 2026-08-21T04:00:00.000Z)
-    if (str.includes('T')) {
-        return str.split('T')[0]; // Tomar solo la parte de la fecha
-    }
-    
-    // Si tiene barra (DD/MM/YYYY o MM/DD/YYYY)
+    // Si tiene barra (DD/MM/YYYY)
     if (str.includes('/')) {
         const parts = str.split('/');
         if (parts.length === 3) {
@@ -167,6 +159,7 @@ function normalizeDate(fecha) {
     
     return str;
 }
+
 function deduplicateAttendance(records) {
     const seen = new Map();
     records.forEach(r => {
