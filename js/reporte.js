@@ -132,11 +132,10 @@ function renderWeeklySummary() {
             else if (bestStatus === 'tardanza') cellContent = '';
             html += '<td>' + cellContent + '</td>';
         });
-        
         html += '<td style="background-color:' + bgColor + ';color:' + textColor + ';text-align:center;font-weight:bold;padding:8px;">' + 
                     '<div style="font-size: 1.1rem;">' + porcentaje + '%</div>' +
                     '<div style="font-size: 0.8rem; opacity: 0.9; margin-top: 2px;">' + totalAsistencias + '/' + totalDias + '</div>' +
-                '</td></tr>';
+        '</td></tr>';
         //html += '<td style="background-color:' + bgColor + ';color:' + textColor + ';text-align:center;font-weight:bold;padding:8px;">' + porcentaje + '%</td></tr>';
     });
     
