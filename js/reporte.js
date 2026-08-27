@@ -3,7 +3,8 @@ let attendanceData = [];
 let selectedWeek = 0;
 let summaryTeacherFilter = 'todos';
 let attendanceColorFilter = 'todos';
-let attendanceCache = null; // Cache para datos precalculados
+let attendanceCache = null;
+let availableWeeks = []; // Semanas con datos
 
 if (!checkAuth()) {
 } else {
@@ -18,17 +19,104 @@ async function initReporte() {
         generateTeacherFilters(data.uniqueTeachers);
         attendanceData = await loadAttendanceFromSheet();
         
-        // Precalcular datos una sola vez
         precalculateAttendance();
-        
+        calculateAvailableWeeks(); // Calcular semanas con datos
         renderWeekSelector();
+        populateWeekCombo(); // Llenar el combo
         renderWeeklySummary();
     } catch (error) {
         console.error('Error:', error);
     }
 }
 
-// ✅ FUNCIÓN NUEVA: Precalcular asistencia por estudiante
+// Calcular semanas únicas que tienen datos
+function calculateAvailableWeeks() {
+    const weeks = new Map();
+    
+    attendanceData.forEach(function(record) {
+        const date = new Date(record.fecha + 'T12:00:00');
+        const dayOfWeek = date.getDay();
+        const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        
+        const monday = new Date(date);
+        monday.setDate(date.getDate() - daysToMonday);
+        
+        const friday = new Date(monday);
+        friday.setDate(monday.getDate() + 4);
+        
+        const mondayStr = formatDate(monday);
+        const fridayStr = formatDate(friday);
+        const weekKey = mondayStr;
+        
+        if (!weeks.has(weekKey)) {
+            weeks.set(weekKey, {
+                start: monday,
+                end: friday,
+                label: formatDateShort(monday) + ' - ' + formatDateShort(friday)
+            });
+        }
+    });
+    
+    // Ordenar por fecha (más reciente primero)
+    availableWeeks = Array.from(weeks.values())
+        .sort((a, b) => b.start - a.start);
+    
+    console.log('✅ Semanas disponibles:', availableWeeks.length);
+}
+
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return year + '-' + month + '-' + day;
+}
+
+function formatDateShort(date) {
+    const day = date.getDate();
+    const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    return day + ' ' + monthNames[date.getMonth()];
+}
+
+// Llenar el combo con las semanas disponibles
+function populateWeekCombo() {
+    const combo = document.getElementById('weekCombo');
+    if (!combo) return;
+    
+    combo.innerHTML = '<option value="">Seleccionar semana...</option>';
+    
+    availableWeeks.forEach(function(week, index) {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = week.label;
+        combo.appendChild(option);
+    });
+}
+
+// Saltar a una semana específica del combo
+function jumpToWeek(weekIndex) {
+    if (weekIndex === '') return;
+    
+    const week = availableWeeks[parseInt(weekIndex)];
+    if (!week) return;
+    
+    // Calcular el offset desde la semana actual
+    const today = new Date();
+    const currentDay = today.getDay();
+    const daysToMonday = currentDay === 0 ? 6 : currentDay - 1;
+    const thisMonday = new Date(today);
+    thisMonday.setDate(today.getDate() - daysToMonday);
+    thisMonday.setHours(12, 0, 0, 0);
+    
+    const diffTime = week.start - thisMonday;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    const offset = Math.round(diffDays / 7);
+    
+    selectedWeek = offset;
+    document.getElementById('weekCombo').value = ''; // Resetear combo
+    renderWeekSelector();
+    renderWeeklySummary();
+}
+
 function precalculateAttendance() {
     attendanceCache = {};
     
@@ -45,7 +133,6 @@ function precalculateAttendance() {
             };
         }
         
-        // Guardar mejor estado por fecha
         if (!attendanceCache[nombre].porFecha[fecha]) {
             attendanceCache[nombre].porFecha[fecha] = estado;
             attendanceCache[nombre].totalDias.add(fecha);
@@ -54,7 +141,6 @@ function precalculateAttendance() {
                 attendanceCache[nombre].totalAsistencias++;
             }
         } else {
-            // Actualizar si es mejor estado
             const existing = attendanceCache[nombre].porFecha[fecha];
             if (estado === 'presente' || (estado === 'tardanza' && existing !== 'presente')) {
                 if (existing === 'ausente') {
@@ -64,8 +150,6 @@ function precalculateAttendance() {
             }
         }
     });
-    
-    console.log('✅ Datos precalculados:', Object.keys(attendanceCache).length, 'estudiantes');
 }
 
 function generateTeacherFilters(teachers) {
@@ -111,6 +195,7 @@ function renderWeekSelector() {
         else btn.textContent = 'Semana ' + i;
         btn.onclick = function() {
             selectedWeek = i;
+            document.getElementById('weekCombo').value = ''; // Resetear combo
             document.querySelectorAll('.week-btn').forEach(function(b) { b.classList.remove('active'); });
             btn.classList.add('active');
             renderWeeklySummary();
@@ -133,13 +218,11 @@ function renderWeeklySummary() {
     html += '<th>Total</th></tr></thead><tbody>';
 
     filteredStudents.forEach(function(student, index) {
-        // ✅ Usar datos precalculados del cache
         const cache = attendanceCache[student.nombre] || { totalDias: new Set(), totalAsistencias: 0, porFecha: {} };
         const totalDias = cache.totalDias.size;
         const totalAsistencias = cache.totalAsistencias;
         const porcentaje = totalDias > 0 ? Math.round((totalAsistencias / totalDias) * 100) : 0;
         
-        // Aplicar filtro por color
         let mostrarAlumno = true;
         if (attendanceColorFilter === 'verde' && porcentaje < 75) mostrarAlumno = false;
         if (attendanceColorFilter === 'amarillo' && (porcentaje < 50 || porcentaje >= 75)) mostrarAlumno = false;
@@ -147,7 +230,6 @@ function renderWeeklySummary() {
         
         if (!mostrarAlumno) return;
         
-        // Colores
         let bgColor = '#dc3545';
         let textColor = '#ffffff';
         
@@ -158,18 +240,16 @@ function renderWeeklySummary() {
             textColor = '#212529';
         }
         
-        // Renderizar filas
         html += '<tr><td>' + (index + 1) + '. ' + student.nombre + '</td>';
         days.forEach(function(day) {
             const bestStatus = cache.porFecha[day.date] || null;
             let cellContent = '-';
             if (bestStatus === 'presente') cellContent = '✅';
             else if (bestStatus === 'ausente') cellContent = '❌';
-            else if (bestStatus === 'tardanza') cellContent = '⏰';
+            else if (bestStatus === 'tardanza') cellContent = '';
             html += '<td>' + cellContent + '</td>';
         });
         
-        // Porcentaje con conteo
         html += '<td style="background-color:' + bgColor + ';color:' + textColor + ';text-align:center;font-weight:bold;padding:8px;">' + 
             '<div style="font-size: 1.1rem;">' + porcentaje + '%</div>' +
             '<div style="font-size: 0.8rem; opacity: 0.9; margin-top: 2px;">' + totalAsistencias + '/' + totalDias + '</div>' +
@@ -179,7 +259,6 @@ function renderWeeklySummary() {
     html += '</tbody></table>';
     document.getElementById('weeklySummaryTable').innerHTML = html;
     
-    // Estadísticas rápidas
     updateStats(days);
 }
 
