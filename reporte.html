@@ -3,133 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte de Asistencia</title>
+    <title>Reporte Semanal</title>
     <link rel="stylesheet" href="styles/styles.css">
-    <style>
-        /* Estilos específicos para el combo de semanas */
-        .week-select {
-            padding: 8px 16px;
-            border: 2px solid #667eea;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 600;
-            color: #667eea;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            outline: none;
-            min-width: 200px;
-        }
-
-        .week-select:hover {
-            border-color: #764ba2;
-            color: #764ba2;
-        }
-
-        .week-select:focus {
-            border-color: #764ba2;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .week-select option {
-            padding: 10px;
-            font-weight: 500;
-        }
-
-        /* Contenedor de filtros de semana */
-        .week-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-            margin: 15px 0;
-        }
-
-        .week-controls label {
-            font-weight: 600;
-            margin-right: 8px;
-        }
-
-        /* Botón de compensación */
-        .compensacion-btn {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white !important;
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .compensacion-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
-        }
-    </style>
 </head>
 <body>
     <div class="container">
-        <!-- Navbar -->
         <div id="navbar"></div>
 
         <div class="card">
-            <h2> Resumen Semanal</h2>
+            <h2>📊 Resumen Semanal</h2>
             
-            <!-- Filtro por maestro -->
-            <div class="filter-section">
-                <label>👨🏫 Filtrar por maestro:</label>
-                <div id="summaryTeacherFilters">
-                    <button class="filter-btn active" onclick="filterSummaryByTeacher('todos')">📚 Todos</button>
-                </div>
+            <!-- Filtros por maestro -->
+            <div class="teacher-filters" id="summaryTeacherFilters">
+                <label>👨‍🏫 Filtrar por maestro:</label>
+                <button class="filter-btn active" onclick="filterSummaryByTeacher('todos')">📚 Todos</button>
             </div>
 
-            <!-- Filtro por asistencia -->
-            <div class="filter-section">
+            <!-- Filtros por color de asistencia -->
+            <div class="teacher-filters" style="margin-top: 15px; border-top: 1px solid #e0e0e0; padding-top: 15px;">
                 <label>🎨 Filtrar por asistencia:</label>
-                <div class="color-filters">
-                    <button class="color-filter-btn active" data-color="todos" onclick="filterByAttendanceColor('todos')">
-                        📋 Todos
-                    </button>
-                    <button class="color-filter-btn" data-color="verde" onclick="filterByAttendanceColor('verde')">
-                        ✅ ≥75%
-                    </button>
-                    <button class="color-filter-btn" data-color="amarillo" onclick="filterByAttendanceColor('amarillo')">
-                        ⚠️ 50-74%
-                    </button>
-                    <button class="color-filter-btn" data-color="rojo" onclick="filterByAttendanceColor('rojo')">
-                        ❌ <50%
-                    </button>
-                </div>
+                <button class="filter-btn color-filter-btn active" data-color="todos" onclick="filterByAttendanceColor('todos')">
+                    📋 Todos
+                </button>
+                <button class="filter-btn color-filter-btn" data-color="verde" onclick="filterByAttendanceColor('verde')" style="background: #28a745; color: white; border-color: #28a745;">
+                    ✅ ≥75%
+                </button>
+                <button class="filter-btn color-filter-btn" data-color="amarillo" onclick="filterByAttendanceColor('amarillo')" style="background: #ffc107; color: #212529; border-color: #ffc107;">
+                    ⚠️ 50-74%
+                </button>
+                <button class="filter-btn color-filter-btn" data-color="rojo" onclick="filterByAttendanceColor('rojo')" style="background: #dc3545; color: white; border-color: #dc3545;">
+                    ❌ &lt;50%
+                </button>
             </div>
 
-            <!-- Controles de semana: botones + combo -->
-            <div class="week-controls">
-                <!-- Botones rápidos -->
-                <div id="weekSelector" class="week-selector"></div>
-                
-                <!-- Combo de semanas con datos -->
-                <div style="flex: 1; min-width: 200px;">
-                    <label for="weekCombo"> Ir a semana:</label>
-                    <select id="weekCombo" class="week-select" onchange="jumpToWeek(this.value)">
-                        <option value="">Seleccionar semana...</option>
-                    </select>
-                </div>
-            </div>
-
+            <!-- Selector de semanas -->
+            <div class="week-selector" id="weekSelector"></div>
+            
             <!-- Rango de fechas -->
             <div class="week-range" id="weekRange"></div>
-
-            <!-- Tabla de resumen semanal -->
+            
+            <!-- Tabla de resumen -->
             <div class="table-responsive">
                 <div id="weeklySummaryTable"></div>
             </div>
-
+            
             <!-- Estadísticas -->
-            <h3 style="margin-top: 30px;">Porcentaje de Asistencia General:</h3>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill" style="width: 0%;">0%</div>
-            </div>
-
             <div class="stats-row" id="statsRow"></div>
+            
+            <!-- Barra de progreso -->
+            <div style="margin-top: 20px;">
+                <label style="margin-bottom: 10px; display: block; font-weight: 600;">Porcentaje de Asistencia General:</label>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
+                </div>
+            </div>
         </div>
     </div>
 
