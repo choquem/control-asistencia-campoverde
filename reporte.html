@@ -38,6 +38,19 @@
 
             <!-- Selector de semanas -->
             <div class="week-selector" id="weekSelector"></div>
+
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 15px 0;">
+            <!-- Botones rápidos -->
+            <div id="weekSelector" class="week-selector"></div>
+            
+            <!-- Combo de semanas con datos -->
+            <div style="flex: 1; min-width: 200px;">
+                <label for="weekCombo" style="font-weight: 600; margin-right: 8px;">📅 Ir a semana:</label>
+                <select id="weekCombo" class="week-select" onchange="jumpToWeek(this.value)">
+                    <option value="">Seleccionar semana...</option>
+                </select>
+            </div>
+           
             
             <!-- Rango de fechas -->
             <div class="week-range" id="weekRange"></div>
