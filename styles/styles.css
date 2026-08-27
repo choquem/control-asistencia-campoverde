@@ -433,7 +433,7 @@ tr:hover { background: #f8f9fa; }
    ============================================ */
 @media (max-width: 768px) {
     .summary-table td:last-child {
-        font-size: 0.55rem !important;
+        font-size: 0.45rem !important;
         padding: 3px 2px !important;
     }
     
