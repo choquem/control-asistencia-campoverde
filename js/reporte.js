@@ -104,7 +104,7 @@ function filterByAttendanceColor(color) {
 function renderWeekSelector() {
     const selector = document.getElementById('weekSelector');
     selector.innerHTML = '';
-    for (let i = 0; i >= -2; i--) {
+    for (let i = 0; i >= -1; i--) {
         const btn = document.createElement('button');
         btn.className = 'week-btn' + (i === selectedWeek ? ' active' : '');
         if (i === 0) btn.textContent = 'Esta Semana';
