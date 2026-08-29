@@ -266,40 +266,35 @@ tr:hover { background: #f8f9fa; }
     border-radius: 4px;
     transition: all 0.3s;
 }
+.attendance-cell.high { background-color: #28a745 !important; color: #ffffff !important; }
+.attendance-cell.medium { background-color: #ffc107 !important; color: #212529 !important; }
+.attendance-cell.low { background-color: #dc3545 !important; color: #ffffff !important; }
 
-/* Verde: >= 75% */
-.attendance-cell.high {
-    background-color: #28a745 !important;
-    color: #ffffff !important;
+/* ============================================
+   BOTONES DE FILTRO POR COLOR
+   ============================================ */
+.color-filter-btn {
+    font-weight: 700;
+    border-width: 2px;
 }
-
-/* Amarillo: 50-74% */
-.attendance-cell.medium {
-    background-color: #ffc107 !important;
-    color: #212529 !important;
-}
-
-/* Rojo: < 50% */
-.attendance-cell.low {
-    background-color: #dc3545 !important;
-    color: #ffffff !important;
+.color-filter-btn.active {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 /* ============================================
-   RESPONSIVE - MÓVIL
+   RESPONSIVE - MÓVIL (General)
    ============================================ */
 @media (max-width: 768px) {
     h1 { font-size: 1.3rem; margin-bottom: 15px; }
     .card { padding: 10px; }
     .card h2 { font-size: 1.1rem; margin-bottom: 15px; }
     
-    /* Tabla de registro */
     table { font-size: 0.85rem; }
     th, td { padding: 8px; }
     .status-buttons { flex-direction: column; }
     .status-btn { width: 100%; min-width: auto; justify-content: flex-start; padding-left: 15px; }
     
-    /* Tabla de reporte semanal */
     .table-responsive {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
@@ -323,7 +318,6 @@ tr:hover { background: #f8f9fa; }
         border: none;
     }
     
-    /* COLUMNA DE NOMBRE - 30% */
     .summary-table th:first-child,
     .summary-table td:first-child {
         width: 30%;
@@ -348,7 +342,6 @@ tr:hover { background: #f8f9fa; }
         font-size: 0.72rem;
     }
     
-    /* COLUMNAS DE DÍAS - 14% cada una */
     .summary-table th:not(:first-child),
     .summary-table td:not(:first-child) {
         width: 14%;
@@ -367,7 +360,6 @@ tr:hover { background: #f8f9fa; }
         line-height: 1;
     }
     
-    /* ICONOS PEQUEÑOS */
     .summary-table td:not(:first-child) {
         font-size: 0.7rem;
         line-height: 1;
@@ -380,7 +372,6 @@ tr:hover { background: #f8f9fa; }
         max-width: 18px !important;
     }
     
-    /* COLUMNA DE ASISTENCIA EN MÓVIL */
     .attendance-cell {
         font-size: 0.7rem;
         padding: 4px 2px;
@@ -397,7 +388,6 @@ tr:hover { background: #f8f9fa; }
         width: 14%;
     }
     
-    /* Filtros y controles */
     .teacher-filters { flex-direction: column; align-items: stretch; gap: 6px; margin-bottom: 15px; }
     .teacher-filters label { margin-right: 0; margin-bottom: 3px; font-size: 0.85rem; }
     .filter-btn { width: 100%; text-align: center; padding: 6px; font-size: 0.85rem; }
@@ -407,31 +397,23 @@ tr:hover { background: #f8f9fa; }
     
     .week-range { font-size: 0.8rem; padding: 8px 10px; margin-bottom: 10px; }
     
-    /* Estadísticas */
     .stats-row { grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 15px; }
     .stat-mini { padding: 8px; }
     .stat-mini .num { font-size: 1.1rem; }
     .stat-mini .lbl { font-size: 0.7rem; }
     
-    /* Navegación */
     .navbar { flex-direction: column; text-align: center; padding: 10px; gap: 10px; }
     .nav-links { justify-content: center; flex-wrap: wrap; gap: 6px; }
     .nav-link { font-size: 0.8rem; padding: 5px 10px; }
     .btn-logout { font-size: 0.8rem; padding: 5px 10px; }
     
-    /* Fecha y contador */
     .date-display { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px; }
     .current-date { font-size: 0.9rem; text-align: center; }
     .student-count { align-self: center; font-size: 0.75rem; padding: 4px 10px; }
     
-    /* Barra de progreso */
     .progress-bar { height: 18px; margin-top: 10px; }
     .progress-fill { font-size: 0.7rem; }
-}
-/* ============================================
-   COLUMNA DE PORCENTAJE EN MÓVIL - MÁS PEQUEÑA
-   ============================================ */
-@media (max-width: 768px) {
+
     .summary-table td:last-child {
         font-size: 0.45rem !important;
         padding: 3px 2px !important;
@@ -447,33 +429,53 @@ tr:hover { background: #f8f9fa; }
         font-size: 0.55rem !important;
         line-height: 1;
     }
-}
 
-/* ============================================
-   BOTONES DE FILTRO POR COLOR
-   ============================================ */
-.color-filter-btn {
-    font-weight: 700;
-    border-width: 2px;
-}
-
-.color-filter-btn.active {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-/* En móvil, apilar los botones */
-@media (max-width: 768px) {
     .color-filter-btn {
         font-size: 0.8rem;
         padding: 6px 10px;
         flex: 1;
         min-width: 80px;
     }
+
+    /* ============================================
+       AJUSTES MÓVIL PARA CONTROLES DE SEMANA
+       ============================================ */
+    .week-controls-container {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        padding: 12px !important;
+    }
+    
+    .week-buttons {
+        min-width: 100% !important;
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+    }
+    
+    .week-separator {
+        display: none !important;
+    }
+    
+    .week-combo-container {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+    
+    .week-combo-container label {
+        white-space: normal;
+        text-align: center;
+    }
+    
+    #weekCombo {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
 }
 
 /* =========================================
-   Controles de Semana (Reporte)
+   Controles de Semana (Reporte - Escritorio)
    ========================================= */
 .week-controls-container {
     display: none; /* Oculto hasta que cargue JS */
@@ -489,7 +491,7 @@ tr:hover { background: #f8f9fa; }
 .week-buttons {
     display: flex;
     gap: 5px;
-    min-width: 320px;
+    min-width: 280px;
     min-height: 38px;
     align-items: center;
 }
@@ -523,35 +525,4 @@ tr:hover { background: #f8f9fa; }
     outline: none;
     flex: 1;
     max-width: 300px;
-}
-
-/* ✅ AJUSTE PARA CELULARES (Pantallas menores a 600px) */
-@media (max-width: 600px) {
-    .week-controls-container {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 15px !important;
-        padding: 12px !important;
-    }
-    
-    .week-buttons {
-        min-width: 100% !important;
-        justify-content: center !important;
-        flex-wrap: wrap !important;
-    }
-    
-    .week-separator {
-        display: none !important;
-    }
-    
-    .week-combo-container {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 8px !important;
-    }
-    
-    #weekCombo {
-        max-width: 100% !important;
-        width: 100% !important;
-    }
 }
