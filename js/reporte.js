@@ -24,6 +24,8 @@ async function initReporte() {
         renderWeekSelector();
         cargarSemanasEnCombo();
         renderWeeklySummary();
+        // ✅ ESTA LÍNEA ES LA QUE MUESTRA EL CONTENEDOR
+        document.getElementById('weekControlsContainer').style.display = 'flex';
     } catch (error) {
         console.error('Error:', error);
     }
