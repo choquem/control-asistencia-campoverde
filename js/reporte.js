@@ -22,6 +22,7 @@ async function initReporte() {
         precalculateAttendance();
         
         renderWeekSelector();
+        cargarSemanasEnCombo();
         renderWeeklySummary();
     } catch (error) {
         console.error('Error:', error);
@@ -103,7 +104,7 @@ function filterByAttendanceColor(color) {
 function renderWeekSelector() {
     const selector = document.getElementById('weekSelector');
     selector.innerHTML = '';
-    for (let i = 0; i >= -3; i--) {
+    for (let i = 0; i >= -2; i--) {
         const btn = document.createElement('button');
         btn.className = 'week-btn' + (i === selectedWeek ? ' active' : '');
         if (i === 0) btn.textContent = 'Esta Semana';
@@ -117,6 +118,73 @@ function renderWeekSelector() {
         };
         selector.appendChild(btn);
     }
+}
+// Función para cargar las semanas disponibles en el combo
+function cargarSemanasEnCombo() {
+    const combo = document.getElementById('weekCombo');
+    if (!combo) return;
+
+    // 1. Obtener fechas únicas de los registros
+    const fechasUnicas = [...new Set(attendanceData.map(r => r.fecha))];
+    const semanasMap = new Map();
+
+    // 2. Agrupar por semana (Lunes a Viernes)
+    fechasUnicas.forEach(fechaStr => {
+        const date = new Date(fechaStr + 'T12:00:00'); // T12:00:00 evita problemas de zona horaria
+        const day = date.getDay();
+        // Calcular el lunes de esa semana
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(date.setDate(diff));
+        
+        const friday = new Date(monday);
+        friday.setDate(monday.getDate() + 4);
+
+        const key = monday.toISOString().split('T')[0]; // Usar lunes como clave única
+        
+        if (!semanasMap.has(key)) {
+            const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+            const label = `${monday.getDate()} ${monthNames[monday.getMonth()]} - ${friday.getDate()} ${monthNames[friday.getMonth()]}`;
+            
+            // Calcular el offset relativo a la semana actual
+            const today = new Date();
+            const currentDay = today.getDay();
+            const currentDiff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+            const thisMonday = new Date(today);
+            thisMonday.setDate(currentDiff);
+            thisMonday.setHours(12, 0, 0, 0);
+
+            const diffTime = monday - thisMonday;
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+            const offset = Math.round(diffDays / 7);
+
+            semanasMap.set(key, { label, offset });
+        }
+    });
+
+    // 3. Ordenar semanas (de la más reciente a la más antigua)
+    const semanasOrdenadas = Array.from(semanasMap.values()).sort((a, b) => b.offset - a.offset);
+
+    // 4. Llenar el select
+    combo.innerHTML = '<option value="">Seleccionar semana...</option>';
+    semanasOrdenadas.forEach(semana => {
+        const option = document.createElement('option');
+        option.value = semana.offset;
+        option.textContent = semana.label;
+        combo.appendChild(option);
+    });
+}
+
+// Función para saltar a la semana seleccionada
+function irASemanaEspecifica(offset) {
+    if (offset === "") return;
+    
+    selectedWeek = parseInt(offset);
+    
+    // Actualizar botones visualmente
+    document.querySelectorAll('.week-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Renderizar
+    renderWeeklySummary();
 }
 
 function renderWeeklySummary() {
