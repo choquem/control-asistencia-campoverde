@@ -471,3 +471,87 @@ tr:hover { background: #f8f9fa; }
         min-width: 80px;
     }
 }
+
+/* =========================================
+   Controles de Semana (Reporte)
+   ========================================= */
+.week-controls-container {
+    display: none; /* Oculto hasta que cargue JS */
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.week-buttons {
+    display: flex;
+    gap: 5px;
+    min-width: 320px;
+    min-height: 38px;
+    align-items: center;
+}
+
+.week-separator {
+    width: 1px;
+    height: 30px;
+    background: #ddd;
+    margin: 0 10px;
+}
+
+.week-combo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.week-combo-container label {
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap;
+}
+
+#weekCombo {
+    padding: 8px 12px;
+    border: 2px solid #667eea;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    outline: none;
+    flex: 1;
+    max-width: 300px;
+}
+
+/* ✅ AJUSTE PARA CELULARES (Pantallas menores a 600px) */
+@media (max-width: 600px) {
+    .week-controls-container {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 15px !important;
+        padding: 12px !important;
+    }
+    
+    .week-buttons {
+        min-width: 100% !important;
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+    }
+    
+    .week-separator {
+        display: none !important;
+    }
+    
+    .week-combo-container {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+    
+    #weekCombo {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+}
