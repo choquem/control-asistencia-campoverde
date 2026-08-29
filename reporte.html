@@ -38,18 +38,19 @@
 
             <!-- Selector de semanas -->
 
-            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+            <!-- Controles de Semana -->
+            <div id="weekControlsContainer" class="week-controls-container">
                 
-                <!-- Botones rápidos (con ancho mínimo reservado para evitar saltos) -->
-                <div id="weekSelector" style="display: flex; gap: 5px; min-width: 320px; min-height: 38px; align-items: center;"></div>
+                <!-- Botones rápidos -->
+                <div id="weekSelector" class="week-buttons"></div>
                 
                 <!-- Separador -->
-                <div style="width: 1px; height: 30px; background: #ddd; margin: 0 10px;"></div>
+                <div class="week-separator"></div>
                 
                 <!-- Combo de semanas pasadas -->
-                <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
-                    <label for="weekCombo" style="font-weight: 600; color: #555; white-space: nowrap;">📅 Semanas:</label>
-                    <select id="weekCombo" onchange="irASemanaEspecifica(this.value)" style="padding: 8px 12px; border: 2px solid #667eea; border-radius: 6px; font-size: 1rem; cursor: pointer; outline: none; flex: 1; max-width: 300px;">
+                <div class="week-combo-container">
+                    <label for="weekCombo"> Semanas anteriores:</label>
+                    <select id="weekCombo" onchange="irASemanaEspecifica(this.value)">
                         <option value="">Cargando semanas...</option>
                     </select>
                 </div>
